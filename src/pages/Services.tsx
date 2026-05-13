@@ -1,0 +1,489 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { ArrowRight, CheckCircle2, Users, Video, Plane, FileText, Languages, Search, Bell, MessageSquareHeart, UserCheck, ClipboardCheck, X, ChevronRight, MessageCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import BrandedHeart from "../components/BrandedHeart";
+
+const JAPAN_STEPS = [
+  {
+    id: "01",
+    title: "신청자와 대면상담",
+    desc: "대면 상담을 통하여 머릿속으로만 생각하고 계시는 일본 여성과의 매칭을 구체화합니다. 지원 이유, 평소 연애관, 일본 여성에 대한 이미지, 결혼 이후 현실적인 문제 파악 등을 통해 적합성을 판단합니다.",
+    icon: <Users className="w-6 h-6" />,
+    details: ["1:1 심층 대면 상담", "연애관 및 가치관 파악", "미팅 적합성 공동 판단"]
+  },
+  {
+    id: "02",
+    title: "매칭준비",
+    desc: "프로필 촬영 일정 잡기 및 필수 서류 6가지를 제출합니다. 별도의 웨딩숍에서 메이크업과 헤어를 마친 후 전문 스튜디오에서 촬영을 진행합니다. (별도비용 30만원)",
+    icon: <FileText className="w-6 h-6" />,
+    details: ["전문 프로필 촬영 지원", "6가지 필수 서류 제출", "신원 인증 및 검증"]
+  },
+  {
+    id: "03",
+    title: "계약 / IBJ, TMS 등록 및 자체매칭 참가",
+    desc: "계약 체결 후 모든 서류를 일본어로 번역하여 일본 최대 결혼연합회인 IBJ, TMS에 등록합니다. 약 23만 명의 회원이 활동하는 시스템에서 성혼 활동이 시작됩니다.",
+    icon: <ClipboardCheck className="w-6 h-6" />,
+    details: ["IBJ/TMS 서류 심사 및 등록", "사이트 ID/PW 부여", "계약일로부터 1년 활동"],
+    hasDetailedProcess: true
+  },
+  {
+    id: "04",
+    title: "성혼을 위한 프로필 서칭 과정",
+    desc: "일본 현지 매니저가 시스템 사용을 도와드리며, 한 달에 약 200명 정도를 검색하여 마음에 드는 상대에게 DM 발송이 가능합니다. 인연애 자체 미팅 참여도 동시에 진행됩니다.",
+    icon: <Search className="w-6 h-6" />,
+    details: ["월 200명 검색 및 DM", "매니저 간 상호 검증", "객관적 회원 관리 시스템"]
+  },
+  {
+    id: "05",
+    title: "화상 미팅 매칭 통보",
+    desc: "직접 서칭한 프로필이나 매니저 추천 상대에게 호감을 표시하면 상대 담당 매니저에게 의사가 전달됩니다. 상대가 수락 시 화상 매칭 성사를 통보해 드립니다.",
+    icon: <Bell className="w-6 h-6" />,
+    details: ["호감 의사 전달 서비스", "상대 수락 여부 확인", "매칭 성사 즉시 통보"]
+  },
+  {
+    id: "06",
+    title: "화상 미팅",
+    desc: "양측의 수락으로 매칭 성사 시 화상 미팅을 진행합니다. 가급적 전용 조명과 설비가 구비된 '첫올' 인천 사무소 방문을 권장하며, 상황에 따라 개별 장소에서도 가능합니다.",
+    icon: <Video className="w-6 h-6" />,
+    details: ["전문 통역사 실시간 지원", "전용 방송 설비 이용 권장", "조명 및 환경 최적화"]
+  },
+  {
+    id: "07",
+    title: "가교제 시작",
+    desc: "화상 미팅 후 서로에게 호감이 생겨 만남의 의지가 있다면 1개월간의 가교제 기간이 시작됩니다. SNS나 영상 통화를 통해 수시로 연락하며 서로의 마음을 알아갑니다.",
+    icon: <MessageSquareHeart className="w-6 h-6" />,
+    details: ["1개월 집중 교류 기간", "SNS 및 영상통화 소통", "현지 만남 의사 확인"]
+  },
+  {
+    id: "08",
+    title: "일본 현지 만남",
+    desc: "현지 매니저가 전체 일정, 가이드, 비용 계획 및 예약을 대행합니다. 공항 픽업부터 가이드, 통역까지 매니저가 동행하며, 2일차부터는 상대분과 1:1 동행을 권유드립니다.",
+    icon: <Plane className="w-6 h-6" />,
+    details: ["공항 픽업 및 전일정 케어", "현지 매니저 밀착 동행", "1:1 자유 데이트 지원"]
+  },
+  {
+    id: "09",
+    title: "최종 선택",
+    desc: "현지 매칭 후 최소 1개월 이상 호감을 가지고 연락을 유지하면 성혼 가능성이 높다고 판단합니다. 최종 선택 시 성혼으로 간주하며 계약이 성공적으로 종료됩니다.",
+    icon: <UserCheck className="w-6 h-6" />,
+    details: ["최종 성혼 의사 결정", "성혼 시 계약 종료 통보", "아름다운 결실 및 탈퇴"]
+  }
+];
+
+const UZBEK_STEPS = [
+  {
+    id: "01",
+    title: "신청자와 대면상담",
+    desc: "화상 및 SNS 상담이 아닌 대면 상담을 통해 신청자의 우즈벡 결혼에 대한 확고한 의사를 확인하고, 머릿속에만 그려져 있는 본미팅을 구체화 시키는 단계입니다.",
+    icon: <Users className="w-6 h-6" />,
+    details: ["대면 심층 상담", "진정성 및 의사 확인", "본미팅 구체화"]
+  },
+  {
+    id: "02",
+    title: "계약",
+    desc: "신청자와의 대면상담을 통해 신청자가 계약결정을 하시게 되면 정식 계약을 체결하게 됩니다.",
+    icon: <ClipboardCheck className="w-6 h-6" />,
+    details: ["정식 계약 체결", "계약 결정", "절차 안내"]
+  },
+  {
+    id: "03",
+    title: "매칭준비 활동",
+    desc: "필수 서류 6가지 제출, 프로필 사진 촬영 및 작성을 진행합니다. 선택사항으로 현지 여성분들을 1차 필터링한 후 화상미팅을 진행할 수 있습니다.",
+    icon: <FileText className="w-6 h-6" />,
+    details: ["6가지 필수 서류 제출", "프로필 촬영 및 작성", "화상미팅 (선택)"]
+  },
+  {
+    id: "04",
+    title: "우즈베키스탄 현지 만남",
+    desc: "계약 후 1~2개월 내 현지로 오셔서 2일에 걸쳐 일반지원자, 결정사 지원자들과 맞선을 보시는 일정입니다. 공항 픽업부터 모든 일정에 담당 매니저가 전 일정 동행을 합니다.",
+    icon: <Plane className="w-6 h-6" />,
+    details: ["현지 맞선 일정", "부모님 혼인가능 여부 확인", "전 일정 매니저 동행"]
+  },
+  {
+    id: "05",
+    title: "최종 선택 및 혼인신고 기타행사",
+    desc: "2일에 걸쳐 맞선을 보시고 상호 수락 시 결혼을 위한 서류작업을 바로 시작합니다. 여성은 한국어시험준비를 하고, 그외 기타 행사들은 계약자분과 날짜를 협의해 진행합니다.",
+    icon: <BrandedHeart className="w-6 h-6" />,
+    details: ["최종 상호 수락", "서류 작업 즉시 시작", "한국어 교육 지원"]
+  }
+];
+
+const REQUIRED_DOCUMENTS = [
+  "01 혼인관계증명서 (상세)",
+  "02 재직증명서 or 사업자등록증",
+  "03 소득증명원",
+  "04 건강진단서 (국제결혼용)",
+  "05 범죄사실증명원 (관할 경찰서 민원실)",
+  "06 여권사본 (사진면) 1부"
+];
+
+const PROFILE_DETAILS = [
+  {
+    title: "프로필 사진촬영",
+    desc: "(현지에 가서 여성을 써칭하고 저희가 여성을 1차 인터뷰할때 필요합니다.)"
+  },
+  {
+    title: "프로필 작성",
+    desc: "본인을 충분히 알릴수있는 개성있는 프로필 작성, 이를바탕으로 매니저가 현지에서 여성을 모집하는데 활용합니다.\n(이름,나이,하시는일,년수입,사시는곳,취미, 내가 바라는 결혼 생활순으로 작성합니다.)"
+  }
+];
+
+const VIDEO_MEETING_DETAILS = {
+  title: "화상미팅 (선택)",
+  desc: "기본적으로 저희가 먼저들어가 여성분들을 최소 5배수이상 만나 1차필터링 인터뷰를 하고 현지에서만 소개해드리는것을 원칙으로 합니다.\n(화상미팅 요청은 STANDARD/PREMIUM/VIP 에 따라 횟수 차이가 있습니다.) -> *미팅종류 안내에서 확인"
+};
+
+const REGISTRATION_WORKFLOW = [
+  { title: "대면상담 & 필수 서류 제출", sub: "(등기로만)" },
+  { title: "계약서 발송" },
+  { title: "계약금 납부" },
+  { title: "모든 서류의 일본어 번역 후 IBJ, TMS에 등록" },
+  { title: "IBJ, TMS 서류심사", sub: "*특이사항이 없는 한 2, 3일 내에 모든 승인 완료" },
+  { title: "신청자에게 IBJ, TMS 사이트 ID, PW 부여" },
+  { title: "IBJ, TMS + 인연애미팅으로 성혼 활동 시작", sub: "*이때부터 계약기간 1년이 산정됨" }
+];
+
+export default function Services() {
+  const [activeTab, setActiveTab] = useState<"japan" | "uzbekistan">("japan");
+  const [hoveredDetail, setHoveredDetail] = useState<string | null>(null);
+  const [isWorkflowOpen, setIsWorkflowOpen] = useState(false);
+
+  return (
+    <div className="pt-24 pb-24 px-6 md:px-[5%] max-w-7xl mx-auto min-h-screen relative">
+      {/* Background Decorations */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-accent-pink/5 blur-[120px] rounded-full -z-10" />
+      <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-accent-pink/5 blur-[100px] rounded-full -z-10" />
+
+      {/* Header Section */}
+      <div className="mb-24 text-center">
+        <motion.span 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-xs font-sans font-bold text-accent-pink uppercase tracking-[0.5em] mb-6 block"
+        >
+          Our Methodology
+        </motion.span>
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-5xl md:text-8xl font-serif mb-8 tracking-tighter leading-[1.1] md:leading-tight break-keep"
+        >
+          Matching <br />
+          <span className="text-gray-600 italic">Process</span>
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-xl text-gray-500 max-w-2xl mx-auto font-sans font-light leading-relaxed"
+        >
+          투명하고 체계적인 프로세스를 통해 당신의 소중한 인연을 찾아드립니다. <br />
+          국가별 특성에 최적화된 맞춤형 여정을 확인해보세요.
+        </motion.p>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="flex justify-center mb-24">
+        <div className="bg-white/50 backdrop-blur-sm p-1.5 rounded-full border border-gray-200/50 shadow-sm flex gap-2">
+          <button
+            onClick={() => setActiveTab("japan")}
+            className={`px-10 py-3.5 rounded-full text-xs font-sans font-bold uppercase tracking-widest transition-all duration-500 flex items-center gap-2 ${
+              activeTab === "japan" 
+                ? "bg-white text-[#BC002D] shadow-[0_10px_25px_rgba(188,0,45,0.15)] border border-[#BC002D]/20" 
+                : "text-gray-400 hover:text-gray-900"
+            }`}
+          >
+            <div className={`w-2 h-2 rounded-full transition-all duration-500 ${activeTab === "japan" ? "bg-[#BC002D] scale-125" : "bg-gray-300"}`} />
+            Japan
+          </button>
+          <button
+            onClick={() => setActiveTab("uzbekistan")}
+            className={`px-10 py-3.5 rounded-full text-xs font-sans font-bold uppercase tracking-widest transition-all duration-500 flex items-center gap-2 ${
+              activeTab === "uzbekistan" 
+                ? "bg-[#0099B5] text-white shadow-[0_10px_25px_rgba(0,153,181,0.25)]" 
+                : "text-gray-400 hover:text-gray-900"
+            }`}
+          >
+            <div className={`w-2 h-2 rounded-full transition-all duration-500 ${activeTab === "uzbekistan" ? "bg-white scale-125 shadow-[0_0_5px_rgba(255,255,255,0.5)]" : "bg-gray-300"}`} />
+            Uzbekistan
+          </button>
+        </div>
+      </div>
+
+      {/* Process Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -30 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
+          {(activeTab === "japan" ? JAPAN_STEPS : UZBEK_STEPS).map((step, idx) => (
+            <motion.div 
+              key={step.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.1 }}
+              className="bg-white/40 backdrop-blur-md rounded-[3rem] p-10 md:p-16 border border-white shadow-sm flex flex-col md:flex-row gap-16 items-start group hover:bg-white transition-all duration-700 hover:shadow-2xl hover:shadow-accent-pink/5 relative z-10 hover:z-30"
+            >
+              <div className="flex flex-col items-center gap-6 shrink-0">
+                <span className="text-6xl font-serif text-gray-500 group-hover:text-accent-pink/60 transition-colors duration-700 leading-none">
+                  {step.id}
+                </span>
+                <div className="w-16 h-16 rounded-3xl bg-white shadow-inner flex items-center justify-center text-gray-900 group-hover:bg-accent-pink group-hover:text-white group-hover:scale-110 transition-all duration-700">
+                  {step.icon}
+                </div>
+              </div>
+              
+              <div className="flex-grow">
+                <h3 className="text-3xl md:text-4xl font-serif mb-6 tracking-tight leading-snug break-keep">{step.title}</h3>
+                <p className="text-lg text-gray-500 font-sans font-light leading-relaxed max-w-2xl mb-10">
+                  {step.desc}
+                </p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {step.details.map((detail, dIdx) => {
+                    const isHoverableDetail = (activeTab === "japan" && step.id === "02" && detail === "6가지 필수 서류 제출") ||
+                                      (activeTab === "uzbekistan" && step.id === "03" && (detail === "6가지 필수 서류 제출" || detail === "프로필 촬영 및 작성" || detail === "화상미팅 (선택)"));
+                    return (
+                      <div 
+                        key={dIdx} 
+                        className={`relative ${isHoverableDetail && hoveredDetail === detail ? 'z-50' : 'z-0'}`}
+                        onMouseEnter={() => isHoverableDetail && setHoveredDetail(detail)}
+                        onMouseLeave={() => isHoverableDetail && setHoveredDetail(null)}
+                      >
+                        <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gray-50/80 border border-gray-100 text-[13px] text-gray-900 font-sans font-normal uppercase tracking-[0.1em] transition-all duration-300 ${isHoverableDetail ? 'cursor-help hover:bg-white hover:border-accent-pink/30 hover:text-accent-pink hover:shadow-md' : ''}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full bg-accent-pink transition-all duration-300 ${isHoverableDetail && hoveredDetail === detail ? 'scale-150 shadow-[0_0_10px_rgba(255,77,148,0.5)]' : 'opacity-40'}`} />
+                          {detail}
+                        </div>
+
+                        {isHoverableDetail && (
+                          <AnimatePresence>
+                            {hoveredDetail === detail && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="absolute top-full left-0 mt-4 w-[320px] bg-white p-8 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 z-[100] pointer-events-none"
+                              >
+                                {detail === "6가지 필수 서류 제출" && (
+                                  <>
+                                    <div className="text-[10px] font-sans font-bold text-gray-900 uppercase tracking-widest mb-5 flex items-center gap-2">
+                                      <FileText className="w-3.5 h-3.5 text-accent-pink" /> 필수 서류 리스트
+                                    </div>
+                                    <div className="space-y-4">
+                                      {REQUIRED_DOCUMENTS.map((doc, i) => (
+                                        <div key={i} className="text-[11px] text-gray-500 font-sans flex items-start gap-3 leading-tight">
+                                          <span className="text-accent-pink font-serif italic font-bold shrink-0">{doc.slice(0, 2)}</span>
+                                          <span className="group-hover:text-gray-900 transition-colors">{doc.slice(3)}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+
+                                {detail === "프로필 촬영 및 작성" && (
+                                  <>
+                                    <div className="text-[10px] font-sans font-bold text-gray-900 uppercase tracking-widest mb-5 flex items-center gap-2">
+                                      <Search className="w-3.5 h-3.5 text-accent-pink" /> 프로필 상세 안내
+                                    </div>
+                                    <div className="space-y-6">
+                                      {PROFILE_DETAILS.map((item, i) => (
+                                        <div key={i} className="space-y-2">
+                                          <div className="text-[11px] text-accent-pink font-bold flex items-center gap-2">
+                                            <div className="w-1 h-1 rounded-full bg-accent-pink" />
+                                            {item.title}
+                                          </div>
+                                          <div className="text-[11px] text-gray-500 font-sans leading-relaxed whitespace-pre-line">
+                                            {item.desc}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+
+                                {detail === "화상미팅 (선택)" && (
+                                  <>
+                                    <div className="text-[10px] font-sans font-bold text-gray-900 uppercase tracking-widest mb-5 flex items-center gap-2">
+                                      <Video className="w-3.5 h-3.5 text-accent-pink" /> 화상미팅 안내
+                                    </div>
+                                    <div className="space-y-4">
+                                      <div className="text-[11px] text-accent-pink font-bold flex items-center gap-2">
+                                        <div className="w-1 h-1 rounded-full bg-accent-pink" />
+                                        {VIDEO_MEETING_DETAILS.title}
+                                      </div>
+                                      <div className="text-[11px] text-gray-500 font-sans leading-relaxed whitespace-pre-line">
+                                        {VIDEO_MEETING_DETAILS.desc}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="hidden md:block shrink-0">
+                <button 
+                  onClick={() => (step as any).hasDetailedProcess && setIsWorkflowOpen(true)}
+                  className={`w-14 h-14 rounded-full border border-gray-100 flex items-center justify-center transition-all duration-700 ${
+                    (step as any).hasDetailedProcess 
+                      ? "bg-accent-pink text-white border-accent-pink hover:scale-110 hover:shadow-lg hover:shadow-accent-pink/20" 
+                      : "group-hover:bg-black group-hover:text-white group-hover:rotate-45"
+                  }`}
+                >
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* CTA Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="mt-32 bg-gradient-to-br from-accent-pink/5 to-accent-pink/10 text-gray-900 p-16 md:p-24 rounded-[4rem] text-center relative overflow-hidden border border-accent-pink/20 shadow-2xl shadow-accent-pink/5"
+      >
+        <div className="relative z-10">
+          <h2 className="text-4xl md:text-6xl font-serif mb-8 leading-[1.1] md:leading-tight break-keep">Ready to Start?</h2>
+          <p className="text-gray-500 max-w-xl mx-auto font-sans font-light mb-12">
+            당신만의 특별한 인연을 찾는 여정,<br />지금 바로 시작하세요.<br />
+            전문 매니저가 당신의 모든 과정을 함께합니다.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link 
+              to="/contact"
+              className="bg-black text-white px-12 py-5 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-black/20"
+            >
+              상담 신청하기
+            </Link>
+            <button 
+              onClick={() => (window as any).Tawk_API?.toggle()}
+              className="bg-accent-pink text-gray-900 px-12 py-5 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-accent-pink/20 flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="w-5 h-5" />
+              실시간 상담
+            </button>
+            <Link 
+              to={activeTab === "japan" ? "/services/japan" : "/services/uzbekistan"}
+              className="bg-white text-gray-900 border border-gray-200 px-12 py-5 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:bg-gray-50 transition-all"
+            >
+              패키지 확인하기
+            </Link>
+          </div>
+        </div>
+        
+        <div className="absolute top-0 right-0 w-96 h-96 bg-accent-pink/5 blur-[120px] -mr-48 -mt-48" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-pink/5 blur-[120px] -ml-48 -mb-48" />
+      </motion.div>
+
+      {/* Registration Workflow Modal */}
+      <AnimatePresence>
+        {isWorkflowOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsWorkflowOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-6xl bg-white rounded-[4rem] p-12 md:p-20 shadow-2xl overflow-hidden"
+            >
+              <button 
+                onClick={() => setIsWorkflowOpen(false)}
+                className="absolute top-10 right-10 w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="mb-16">
+                <span className="text-[10px] font-sans font-bold text-accent-pink uppercase tracking-[0.5em] mb-4 block">
+                  Registration Workflow
+                </span>
+                <h2 className="text-4xl md:text-5xl font-serif tracking-tight leading-[1.1] md:leading-tight break-keep">
+                  계약 및 시스템 등록 <span className="text-gray-300 italic">상세 과정</span>
+                </h2>
+              </div>
+
+              <div className="relative">
+                {/* Desktop Workflow (Horizontal) */}
+                <div className="hidden lg:flex items-center justify-between gap-2 relative">
+                  {REGISTRATION_WORKFLOW.map((item, idx) => (
+                    <div key={idx} className="flex-1 flex flex-col items-center text-center group">
+                      <div className="w-36 h-36 rounded-full bg-white border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-6 group-hover:border-accent-pink group-hover:scale-110 group-hover:bg-gray-50 group-hover:border-solid group-hover:shadow-xl group-hover:shadow-accent-pink/10 transition-all duration-500 relative">
+                        <span className="absolute top-6 text-[10px] font-sans font-bold text-gray-400 group-hover:text-accent-pink transition-colors">
+                          STEP 0{idx + 1}
+                        </span>
+                        <h4 className="text-[13px] font-serif mb-1 px-1 break-keep leading-tight text-gray-900 font-bold group-hover:text-accent-pink transition-colors">{item.title}</h4>
+                        {item.sub && <p className="text-[10px] text-gray-500 font-sans leading-tight px-1 font-medium">{item.sub}</p>}
+                        
+                        {idx < REGISTRATION_WORKFLOW.length - 1 && (
+                          <div className="absolute -right-5 top-1/2 -translate-y-1/2 text-accent-pink z-10 bg-white p-1">
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Mobile Workflow (Vertical) */}
+                <div className="lg:hidden flex flex-col items-center gap-8">
+                  {REGISTRATION_WORKFLOW.map((item, idx) => (
+                    <div key={idx} className="flex flex-col items-center text-center group">
+                      <div className="w-48 h-48 rounded-full bg-white border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-8 relative group-hover:border-accent-pink group-hover:scale-105 group-hover:bg-gray-50 group-hover:border-solid group-hover:shadow-xl group-hover:shadow-accent-pink/10 transition-all duration-500">
+                        <span className="absolute top-8 text-[11px] font-sans font-bold text-accent-pink">
+                          STEP 0{idx + 1}
+                        </span>
+                        <h4 className="text-base font-serif mb-2 px-2 break-keep leading-tight font-bold text-gray-900 group-hover:text-accent-pink transition-colors">{item.title}</h4>
+                        {item.sub && <p className="text-[11px] text-gray-500 font-sans leading-tight px-4 font-medium">{item.sub}</p>}
+                        
+                        {idx < REGISTRATION_WORKFLOW.length - 1 && (
+                          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-accent-pink rotate-90">
+                            <ArrowRight className="w-5 h-5" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-20 pt-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p className="text-xs text-accent-pink font-sans font-bold uppercase tracking-widest">
+                  * 일본결혼연합회 전체회원수 약 23만명 (24년 기준)
+                </p>
+                <button 
+                  onClick={() => setIsWorkflowOpen(false)}
+                  className="bg-black text-white px-10 py-4 rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:scale-105 transition-transform"
+                >
+                  Close Window
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

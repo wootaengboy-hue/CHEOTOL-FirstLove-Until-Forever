@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Blog Post",
+      "description": "A blog post entity containing content and metadata.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the post." },
+        "category": { "type": "string", "description": "Category of the post (e.g., JOURNEY, VALUES)." },
+        "title": { "type": "string", "description": "Title of the blog post." },
+        "date": { "type": "string", "description": "Publication date (e.g., MAR 20, 2026)." },
+        "image": { "type": "string", "description": "URL of the post's featured image." },
+        "desc": { "type": "string", "description": "Short summary of the post." },
+        "content": { "type": "string", "description": "Full content of the blog post." },
+        "featured": { "type": "boolean", "description": "Whether the post is featured on the main blog page." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the post was created." },
+        "authorUid": { "type": "string", "description": "UID of the author who created the post." }
+      },
+      "required": ["title", "category", "date", "image", "content", "createdAt", "authorUid"]
+    },
+    "Portfolio": {
+      "title": "Portfolio Item",
+      "description": "A portfolio item entity containing images and details.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the portfolio item." },
+        "title": { "type": "string", "description": "Title of the portfolio item." },
+        "category": { "type": "string", "description": "Category (e.g., JAPAN, VIETNAM, UZBEK)." },
+        "date": { "type": "string", "description": "Date of the event." },
+        "image": { "type": "string", "description": "Main featured image." },
+        "desc": { "type": "string", "description": "Short description." },
+        "content": { "type": "string", "description": "Full story/content." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp." },
+        "authorUid": { "type": "string", "description": "Author UID." }
+      },
+      "required": ["title", "category", "date", "image", "content", "createdAt", "authorUid"]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Collection of blog posts."
+    },
+    "/portfolio/{portfolioId}": {
+      "schema": "Portfolio",
+      "description": "Collection of portfolio items."
+    }
+  }
+}

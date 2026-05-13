@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "wootaengboy@gmail.com" && 
+        request.auth.token.email_verified == true
+      );
+    }
+
+    function isValidPost(data) {
+      return data.keys().hasAll(['title', 'category', 'date', 'image', 'content', 'createdAt', 'authorUid']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.category is string && data.category.size() > 0 && data.category.size() < 50 &&
+             data.date is string && data.date.size() > 0 && data.date.size() < 50 &&
+             data.image is string && data.image.size() > 0 && data.image.size() < 1000 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 100000 &&
+             (data.createdAt is string || data.createdAt is timestamp) &&
+             data.authorUid is string && data.authorUid == request.auth.uid;
+    }
+
+    function isValidPortfolio(data) {
+      return data.keys().hasAll(['title', 'category', 'date', 'image', 'content', 'createdAt', 'authorUid']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.category is string && data.category.size() > 0 && data.category.size() < 50 &&
+             data.date is string && data.date.size() > 0 && data.date.size() < 50 &&
+             data.image is string && data.image.size() > 0 && data.image.size() < 1000 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 100000 &&
+             (data.createdAt is string || data.createdAt is timestamp) &&
+             data.authorUid is string && data.authorUid == request.auth.uid;
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+    match /posts/{postId} {
+      // Anyone can read blog posts
+      allow read: if true;
+      
+      // Only admin can create, update, or delete posts
+      allow create: if isAdmin() && isValidPost(request.resource.data);
+      allow update: if isAdmin() && isValidPost(request.resource.data) && 
+                      request.resource.data.authorUid == resource.data.authorUid &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+
+    match /portfolio/{portfolioId} {
+      // Anyone can read portfolio items
+      allow read: if true;
+      
+      // Only admin can create, update, or delete portfolio items
+      allow create: if isAdmin() && isValidPortfolio(request.resource.data);
+      allow update: if isAdmin() && isValidPortfolio(request.resource.data) && 
+                      request.resource.data.authorUid == resource.data.authorUid &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@300;400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Nanum Myeongjo", serif;
+  --font-sans: "Noto Sans KR", sans-serif;
+  --color-warm-beige: #f9f6ef;
+  --color-accent-pink: #FF4D94;
+  --color-form-bg: #e6e4d5;
+}
+
+body {
+  background-color: var(--color-warm-beige);
+  color: #1a1a1a;
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-serif);
+}

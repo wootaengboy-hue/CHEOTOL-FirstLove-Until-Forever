@@ -1,0 +1,123 @@
+export interface IBlogPost {
+  id: string;
+  category: string;
+  title: string;
+  date: string;
+  image: string;
+  desc: string;
+  content: string;
+  featured: boolean;
+  createdAt: string;
+  authorUid: string;
+}
+
+export interface IPortfolioItem {
+  id: string;
+  title: string;
+  category: string;
+  date: string;
+  image: string;
+  desc: string;
+  content: string;
+  createdAt: string;
+  authorUid: string;
+}
+
+export const INITIAL_POSTS: IBlogPost[] = [
+  {
+    id: "sample-1",
+    category: "JOURNEY",
+    title: "국경을 넘는 사랑, 그 첫걸음의 설렘",
+    date: "MAR 20, 2026",
+    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=1000",
+    desc: "서로 다른 문화에서 자란 두 사람이 만났을 때 생기는 마법 같은 순간들. 우리는 그 찰나의 진심을 기록합니다.",
+    content: "서로 다른 문화에서 자란 두 사람이 만났을 때 생기는 마법 같은 순간들. 우리는 그 찰나의 진심을 기록합니다.\n\n사랑에는 국경이 없다는 말은 흔하지만, 실제로 그 과정을 지켜보는 것은 매번 새로운 감동을 줍니다. 언어의 장벽을 넘어 눈빛으로 소통하고, 서로의 문화를 존중하며 맞춰가는 과정은 그 자체로 하나의 예술 작품과 같습니다.\n\nCHEOTOL이 만난 수많은 인연들 중에서도 특히 기억에 남는 한 커플이 있습니다. 일본에서 오신 여성분과 한국의 남성분이었죠. 두 분은 처음 만난 순간부터 묘한 긴장감과 설렘이 교차했습니다. 통역사가 있었지만, 어느 순간부터 두 분은 통역 없이도 서로의 마음을 읽어내기 시작했습니다.\n\n그것은 단순한 대화가 아니라, 영혼의 공명에 가까웠습니다. 우리는 그 순간을 '첫사랑의 재림'이라고 부릅니다. 나이가 들어도, 상황이 변해도 우리 가슴 속에는 여전히 순수한 사랑을 갈망하는 소년과 소녀가 살고 있기 때문입니다.",
+    featured: true,
+    createdAt: "2026-03-20T00:00:00Z",
+    authorUid: "system"
+  },
+  {
+    id: "sample-2",
+    category: "VALUES",
+    title: "조건보다 중요한 가치관의 일치",
+    date: "MAR 15, 2026",
+    image: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80&w=1000",
+    desc: "행복한 결혼 생활을 위해 우리가 가장 먼저 확인해야 할 것들. 스펙 너머의 사람을 봅니다.",
+    content: "행복한 결혼 생활을 위해 우리가 가장 먼저 확인해야 할 것들. 스펙 너머의 사람을 봅니다.\n\n많은 사람들이 결혼 상대를 찾을 때 나이, 직업, 재산 같은 외부적인 조건들을 먼저 나열하곤 합니다. 물론 현실적인 부분도 중요하지만, CHEOTOL이 수년간 성혼을 도우며 깨달은 진리는 '가치관의 일치'가 행복의 가장 강력한 토대라는 점입니다.\n\n삶을 대하는 태도, 가족을 생각하는 마음, 그리고 어려움이 닥쳤을 때 함께 헤쳐 나갈 의지. 이러한 보이지 않는 가치들이 일치할 때 비로소 흔들리지 않는 가정을 이룰 수 있습니다.\n\n우리는 매칭 과정에서 이 부분을 가장 심도 있게 다룹니다. 단순히 서류상의 조건을 맞추는 것이 아니라, 두 사람의 인생 철학이 같은 방향을 향하고 있는지를 살핍니다. 그것이 바로 우리가 추구하는 '진정한 인연'의 모습입니다.",
+    featured: false,
+    createdAt: "2026-03-15T00:00:00Z",
+    authorUid: "system"
+  },
+  {
+    id: "sample-3",
+    category: "TIPS",
+    title: "온라인 화상 미팅, 진심을 전하는 법",
+    date: "MAR 10, 2026",
+    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1000",
+    desc: "화면 너머로 당신의 진심을 오롯이 전달하는 작은 팁들. 눈빛 하나에 담긴 진심을 전하세요.",
+    content: "화면 너머로 당신의 진심을 오롯이 전달하는 작은 팁들. 눈빛 하나에 담긴 진심을 전하세요.\n\n물리적 거리가 있는 국제결혼의 특성상 온라인 화상 미팅은 필수적인 과정입니다. 하지만 많은 분들이 카메라 앞에서 긴장하거나, 자신의 매력을 충분히 보여주지 못할까 봐 걱정하시곤 하죠.\n\n첫 번째 팁은 '아이 컨택'입니다. 화면 속 상대방의 얼굴이 아닌, 카메라 렌즈를 바라보세요. 그래야 상대방은 당신이 자신을 똑바로 쳐다보고 있다고 느낍니다.\n\n두 번째는 '리액션'입니다. 언어가 완벽하지 않아도 고개를 끄덕이거나 환하게 웃는 모습은 백 마디 말보다 더 큰 울림을 줍니다. 당신이 상대방의 이야기에 집중하고 있다는 가장 확실한 신호이기 때문입니다.",
+    featured: false,
+    createdAt: "2026-03-10T00:00:00Z",
+    authorUid: "system"
+  },
+  {
+    id: "sample-4",
+    category: "STORY",
+    title: "성혼 후 정착 이야기: 낯설지만 설레는 시작",
+    date: "MAR 05, 2026",
+    image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80&w=1000",
+    desc: "새로운 나라에서의 시작, 낯설지만 설레는 그 여정을 응원합니다. 당신의 행복한 정착을 위해.",
+    content: "새로운 나라에서의 시작, 낯설지만 설레는 그 여정을 응원합니다. 당신의 행복한 정착을 위해.\n\n결혼은 끝이 아니라 새로운 시작입니다. 특히 국경을 넘어 새로운 나라에 정착하는 과정은 설렘만큼이나 두려움도 따르기 마련이죠.\n\nCHEOTOL은 성혼 이후의 삶에도 깊은 관심을 기울입니다. 한국에 입국한 배우자가 낯선 환경에 잘 적응할 수 있도록 언어 교육부터 문화 체험, 그리고 정서적인 케어까지 체계적으로 지원합니다.\n\n최근 성혼하신 베트남 신부님은 한국 음식을 배우는 재미에 푹 빠지셨다고 합니다. 남편분과 함께 시장을 보고 요리를 하며 조금씩 한국 생활에 스며드는 모습이 참 아름다웠습니다. 우리는 이런 소소한 일상의 행복이 지속될 수 있도록 끝까지 곁을 지키겠습니다.",
+    featured: false,
+    createdAt: "2026-03-05T00:00:00Z",
+    authorUid: "system"
+  },
+  {
+    id: "sample-5",
+    category: "CULTURE",
+    title: "일본, 베트남, 우즈벡: 각기 다른 매력의 인연",
+    date: "FEB 28, 2026",
+    image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=1000",
+    desc: "각 나라가 가진 고유한 정서와 아름다움. 당신에게 가장 잘 어울리는 인연의 색깔은 무엇인가요?",
+    content: "각 나라가 가진 고유한 정서와 아름다움. 당신에게 가장 잘 어울리는 인연의 색깔은 무엇인가요?\n\n일본의 정갈함과 세심함, 베트남의 순박함과 강인함, 그리고 우즈베키스탄의 따뜻함과 깊은 가족애. 각 나라는 저마다의 아름다운 색깔을 가지고 있습니다.\n\n중요한 것은 어떤 나라가 더 좋으냐가 아니라, 당신의 성향과 어떤 문화권이 더 잘 어우러지느냐입니다. 조용하고 차분한 소통을 원하신다면 일본이, 활기차고 가족 중심적인 삶을 꿈꾸신다면 베트남이나 우즈베키스탄이 좋은 선택이 될 수 있습니다.\n\nCHEOTOL은 당신의 라이프스타일과 가치관을 분석하여 가장 조화로운 문화권의 인연을 제안해 드립니다. 당신만의 색깔을 찾아가는 그 여정에 저희가 함께하겠습니다.",
+    featured: false,
+    createdAt: "2026-02-28T00:00:00Z",
+    authorUid: "system"
+  }
+];
+
+export const INITIAL_PORTFOLIO: IPortfolioItem[] = [
+  {
+    id: "port-1",
+    title: "일본 도쿄에서의 첫 만남",
+    category: "JAPAN",
+    date: "MAR 12, 2026",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000",
+    desc: "정갈한 도쿄의 거리에서 시작된 두 사람의 소중한 인연.",
+    content: "정갈한 도쿄의 거리에서 시작된 두 사람의 소중한 인연.\n\n도쿄의 차분한 분위기 속에서 진행된 이번 매칭은 서로에 대한 깊은 존중과 배려가 돋보였습니다. 일본 여성 특유의 세심함과 한국 남성의 듬직함이 만나 완벽한 조화를 이루었습니다.\n\n두 분은 첫 대화부터 공통된 취미와 가치관을 발견하며 빠르게 가까워졌습니다. 도쿄의 야경을 배경으로 나눈 진솔한 대화는 두 사람의 마음을 하나로 묶어주기에 충분했습니다.",
+    createdAt: "2026-03-12T00:00:00Z",
+    authorUid: "system"
+  },
+  {
+    id: "port-2",
+    title: "베트남 다낭, 해변의 약속",
+    category: "VIETNAM",
+    date: "MAR 08, 2026",
+    image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=1000",
+    desc: "푸른 바다가 내려다보이는 다낭에서 맺은 영원한 사랑의 약속.",
+    content: "푸른 바다가 내려다보이는 다낭에서 맺은 영원한 사랑의 약속.\n\n다낭의 아름다운 해변에서 진행된 이번 성혼식은 가족들의 축복 속에서 따뜻하게 치러졌습니다. 순박하고 밝은 미소의 베트남 신부님과 그녀를 아끼는 마음이 가득한 한국 신랑님의 모습은 보는 이들로 하여금 미소를 짓게 했습니다.\n\n서로의 문화를 배우고 이해하려는 노력 끝에 맺어진 결실이기에 더욱 값진 순간이었습니다.",
+    createdAt: "2026-03-08T00:00:00Z",
+    authorUid: "system"
+  },
+  {
+    id: "port-3",
+    title: "우즈베키스탄 사마르칸트의 봄",
+    category: "UZBEK",
+    date: "MAR 01, 2026",
+    image: "https://images.unsplash.com/photo-1540962351504-03099e0a754b?auto=format&fit=crop&q=80&w=1000",
+    desc: "따스한 봄볕이 내리쬐는 사마르칸트에서 시작된 새로운 가족의 탄생.",
+    content: "따스한 봄볕이 내리쬐는 사마르칸트에서 시작된 새로운 가족의 탄생.\n\n우즈베키스탄의 전통과 현대가 공존하는 사마르칸트에서 두 분의 소중한 인연이 시작되었습니다. 가족 중심적인 문화와 따뜻한 정서를 가진 두 분은 처음 만난 순간부터 마치 오랜 시간을 함께해온 가족처럼 편안한 분위기를 자아냈습니다.\n\n새로운 인생의 출발점에 선 두 분의 앞날을 CHEOTOL이 진심으로 응원합니다.",
+    createdAt: "2026-03-01T00:00:00Z",
+    authorUid: "system"
+  }
+];
