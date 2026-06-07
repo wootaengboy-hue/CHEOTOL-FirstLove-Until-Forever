@@ -1,20 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@300;400;500&display=swap');
-@import "tailwindcss";
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-@theme {
-  --font-serif: "Nanum Myeongjo", serif;
-  --font-sans: "Noto Sans KR", sans-serif;
-  --color-warm-beige: #f9f6ef;
-  --color-accent-pink: #FF4D94;
-  --color-form-bg: #e6e4d5;
-}
+    <title>첫올 | 일본 여성 매칭 · 글로벌 교류 플랫폼</title>
 
-body {
-  background-color: var(--color-warm-beige);
-  color: #1a1a1a;
-  font-family: var(--font-sans);
-}
+    <meta name="description" content="진정성 있는 인연과 만남, 일본 여성 매칭 및 글로벌 문화 교류 전문 플랫폼 첫올입니다." />
+    <meta name="keywords" content="첫올, 일본여성매칭, 일본매칭, 일본만남, 글로벌매칭, 국제교류" />
 
-h1, h2, h3 {
-  font-family: var(--font-serif);
-}
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cheotol.com/" />
+    <meta property="og:title" content="첫올 | 일본 여성 매칭 · 글로벌 교류 플랫폼" />
+    <meta property="og:description" content="일본 여성과의 진정성 있는 매칭 및 특별한 인연을 선사하는 전문 플랫폼 첫올" />
+    <meta property="og:image" content="https://cheotol.com/logo.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/YOUR_PROPERTY_ID/default';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+    </body>
+</html>

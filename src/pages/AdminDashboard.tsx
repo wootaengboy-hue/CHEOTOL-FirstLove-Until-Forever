@@ -20,7 +20,7 @@ import {
 import { auth, logout, db, syncUserProfile } from "../firebase";
 import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, setDoc, getDoc } from "firebase/firestore";
 import AuthModal from "../components/AuthModal";
 
 export default function AdminDashboard() {
@@ -100,6 +100,36 @@ export default function AdminDashboard() {
 
     return () => unsubscribe();
   }, [isAdmin]);
+
+  // Background Auto-sync unsynced consultations when connection is active
+  useEffect(() => {
+    if (!isAdmin || !isConnected || consultations.length === 0) return;
+
+    const token = localStorage.getItem("google_calendar_token");
+    const expiresStr = localStorage.getItem("google_calendar_token_expires");
+    const expired = token && expiresStr && Date.now() > parseInt(expiresStr);
+    if (!token || expired) return;
+
+    // Find consultations that have a date, time, are not canceled, and do not have a calendarEventId
+    const unsynced = consultations.filter((c: any) => 
+      c.date && 
+      c.time && 
+      !c.calendarEventId && 
+      c.status !== "CANCEL"
+    );
+
+    if (unsynced.length === 0) return;
+
+    // To avoid hitting rate limits or multiple concurrent writes on the same elements, parse them one-by-one
+    const syncAll = async () => {
+      console.log(`Auto-syncing ${unsynced.length} unsynced consultations in background...`);
+      for (const c of unsynced) {
+        await silentSyncToGoogleCalendar(c);
+      }
+    };
+
+    syncAll();
+  }, [isAdmin, isConnected, consultations]);
 
   // Fetch users real-time from Firestore when authenticated as admin
   useEffect(() => {
@@ -270,10 +300,30 @@ export default function AdminDashboard() {
 
   const checkConnection = async () => {
     try {
-      const token = localStorage.getItem("google_calendar_token");
-      const expiresStr = localStorage.getItem("google_calendar_token_expires");
-      const isValid = token && (!expiresStr || Date.now() < parseInt(expiresStr));
+      let token = localStorage.getItem("google_calendar_token");
+      let expiresStr = localStorage.getItem("google_calendar_token_expires");
+      let isValid = token && (!expiresStr || Date.now() < parseInt(expiresStr));
       
+      // If NOT valid in localStorage, check Firestore settings
+      if (!isValid) {
+        try {
+          const docRef = doc(db, "settings", "google_calendar");
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.token && data.expiresAt && Date.now() < data.expiresAt) {
+              token = data.token;
+              expiresStr = data.expiresAt.toString();
+              localStorage.setItem("google_calendar_token", token);
+              localStorage.setItem("google_calendar_token_expires", expiresStr);
+              isValid = true;
+            }
+          }
+        } catch (dbErr) {
+          console.error("Failed to restore google calendar connection from Firestore settings:", dbErr);
+        }
+      }
+
       setIsConnected(!!isValid);
       
       if (!isValid) {
@@ -300,10 +350,22 @@ export default function AdminDashboard() {
       const token = credential?.accessToken;
       
       if (token) {
+        const expiresAt = Date.now() + 3500 * 1000;
         localStorage.setItem("google_calendar_token", token);
          // Expires in slightly less than an hour (google tokens expire in 3600 seconds)
-        localStorage.setItem("google_calendar_token_expires", (Date.now() + 3500 * 1000).toString());
+        localStorage.setItem("google_calendar_token_expires", expiresAt.toString());
         setIsConnected(true);
+
+        try {
+          await setDoc(doc(db, "settings", "google_calendar"), {
+            token,
+            expiresAt,
+            connectedAt: new Date().toISOString()
+          });
+        } catch (dbErr) {
+          console.error("Failed to save google token to Firestore settings:", dbErr);
+        }
+
         alert("구글 캘린더 연동 및 권한 설정에 성공했습니다!");
       } else {
         throw new Error("구글 계정정보에서 연동 키(Access Token)를 가져오지 못했습니다.");
@@ -349,7 +411,8 @@ export default function AdminDashboard() {
         attendees: [
           { email: "wootaengboy@daum.net" },
           { email: "wootaengboy@gmail.com" }
-        ]
+        ],
+        visibility: "public"
       };
 
       const response = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all", {
@@ -418,6 +481,60 @@ export default function AdminDashboard() {
     } catch (err: any) {
       console.error("Calendar deletion error:", err);
       alert(`구글 캘린더 일정 삭제 중 오류:\n${err.message || err}`);
+    }
+  };
+
+  const silentSyncToGoogleCalendar = async (consultation: any) => {
+    const token = localStorage.getItem("google_calendar_token");
+    if (!token) return;
+
+    try {
+      const startDateTime = new Date(`${consultation.date}T${consultation.time}:00`);
+      const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour
+
+      const eventBody = {
+        summary: `[상담] ${consultation.name}님`,
+        description: `연락처: ${consultation.contact || consultation.phone || "없음"}\n내용: ${consultation.story || "없음"}`,
+        start: {
+          dateTime: startDateTime.toISOString(),
+          timeZone: "Asia/Seoul"
+        },
+        end: {
+          dateTime: endDateTime.toISOString(),
+          timeZone: "Asia/Seoul"
+        },
+        attendees: [
+          { email: "wootaengboy@daum.net" },
+          { email: "wootaengboy@gmail.com" }
+        ],
+        visibility: "public"
+      };
+
+      const response = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(eventBody)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem("google_calendar_token");
+          setIsConnected(false);
+        }
+        return;
+      }
+
+      const calEvent = await response.json();
+      const calendarEventId = calEvent.id;
+
+      const docRef = doc(db, "consultations", consultation.id);
+      await updateDoc(docRef, { calendarEventId });
+      console.log(`Auto-synced consultation to Google Calendar: ${consultation.name}`);
+    } catch (err) {
+      console.error("Silent calendar sync error:", err);
     }
   };
 
@@ -659,11 +776,20 @@ export default function AdminDashboard() {
                         <CheckCircle2 className="w-4 h-4" /> Already Connected
                       </button>
                       <button 
-                        onClick={() => {
+                        onClick={async () => {
                           if (confirm("연동을 해제하시겠습니까?")) {
                             localStorage.removeItem("google_calendar_token");
                             localStorage.removeItem("google_calendar_token_expires");
                             setIsConnected(false);
+                            try {
+                              await setDoc(doc(db, "settings", "google_calendar"), {
+                                token: null,
+                                expiresAt: null,
+                                disconnectedAt: new Date().toISOString()
+                              });
+                            } catch (dbErr) {
+                              console.error("Failed to remove token from Firestore:", dbErr);
+                            }
                             alert("구글 연동이 성공적으로 해제되었습니다.");
                           }
                         }}
@@ -806,12 +932,15 @@ export default function AdminDashboard() {
                 </div>
                 
                 {isConnected && (
-                  <div className="mt-6 flex justify-end px-4">
+                  <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4">
+                    <p className="text-[11px] text-gray-500 leading-relaxed bg-amber-50/60 border border-amber-100 rounded-xl px-3.5 py-2">
+                       💡 <strong>캘린더가 [바쁨]으로 표시되나요?</strong> 연동되는 일정 자체는 이름과 함께 <strong>공개(Public)</strong>로 생성되나, 캘린더 자체의 공개 권한이 제한되면 외부에서 제목이 가려집니다. 구글 캘린더 설정 &gt; 내 캘린더 설정 &gt; <strong>'공개 사용 설정'</strong> 하단의 권한 설정을 <strong>'모든 일정 세부정보 보기'</strong>로 승인해 주세요.
+                    </p>
                     <a 
                       href="https://calendar.google.com" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-xs font-sans font-bold text-accent-pink uppercase tracking-widest hover:underline"
+                      className="flex items-center gap-2 text-xs font-sans font-bold text-accent-pink uppercase tracking-widest hover:underline shrink-0"
                     >
                       Open in Google Calendar <ExternalLink className="w-3 h-3" />
                     </a>

@@ -4,7 +4,7 @@ import { ChevronDown, Send, Search, Video, MapPin, Home as HomeIcon, ArrowLeft, 
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { db } from "../firebase";
-import { collection, query, orderBy, limit, onSnapshot, addDoc, updateDoc } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, addDoc, updateDoc, doc, getDoc } from "firebase/firestore";
 import { INITIAL_POSTS, INITIAL_PORTFOLIO } from "../constants/blogData";
 
 import BrandedHeart from "../components/BrandedHeart";
@@ -130,6 +130,58 @@ export default function Home() {
       console.log("Consultation saved to Firestore successfully.");
     } catch (fsError) {
       console.error("Firestore database save error:", fsError);
+    }
+
+    // Try to auto-sync to Google Calendar directly on client-side
+    if (docRef && formData.date && formData.time) {
+      try {
+        const calSettingsRef = doc(db, "settings", "google_calendar");
+        const calSettingsSnap = await getDoc(calSettingsRef);
+        if (calSettingsSnap.exists()) {
+          const calData = calSettingsSnap.data();
+          if (calData.token && calData.expiresAt && Date.now() < calData.expiresAt) {
+            const startDateTime = new Date(`${formData.date}T${formData.time || "14:00"}:00`);
+            const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour
+
+            const eventBody = {
+              summary: `[상담] ${formData.name}님`,
+              description: `연락처: ${formData.contact || "없음"}\n내용: ${formData.story || "없음"}`,
+              start: {
+                dateTime: startDateTime.toISOString(),
+                timeZone: "Asia/Seoul"
+              },
+              end: {
+                dateTime: endDateTime.toISOString(),
+                timeZone: "Asia/Seoul"
+              },
+              attendees: [
+                { email: "wootaengboy@daum.net" },
+                { email: "wootaengboy@gmail.com" }
+              ],
+              visibility: "public"
+            };
+
+            const gcalResponse = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${calData.token}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(eventBody)
+            });
+
+            if (gcalResponse.ok) {
+              const calEvent = await gcalResponse.json();
+              await updateDoc(docRef, { calendarEventId: calEvent.id });
+              console.log("Automatically synced to Google Calendar on submit!");
+            } else {
+              console.warn("Direct Google Calendar sync failed (status: " + gcalResponse.status + "), will sync automatically in background next time Admin opens dashboard.");
+            }
+          }
+        }
+      } catch (calError) {
+        console.error("Direct Google Calendar sync exception:", calError);
+      }
     }
 
     try {
