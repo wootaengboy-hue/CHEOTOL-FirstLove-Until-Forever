@@ -12,8 +12,8 @@ import { google } from "googleapis";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = typeof import.meta !== "undefined" && import.meta.url ? fileURLToPath(import.meta.url) : (typeof __filename !== "undefined" ? __filename : "");
+const _dirname = typeof __dirname !== "undefined" ? __dirname : (typeof _filename === "string" && _filename ? path.dirname(_filename) : "");
 
 const readdir = promisify(fs.readdir);
 const stat = promisify(fs.stat);
