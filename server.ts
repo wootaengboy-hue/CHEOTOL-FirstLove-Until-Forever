@@ -56,11 +56,28 @@ async function startServer() {
 
   // Google OAuth Configuration
   const APP_URL = process.env.APP_URL || "http://localhost:3000";
-  const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    `${APP_URL}/api/auth/google/callback`
-  );
+
+  const getRedirectUri = (req?: express.Request) => {
+    if (!req) return `${APP_URL}/api/auth/google/callback`;
+    const host = req.headers["x-forwarded-host"] || req.headers.host || "localhost:3000";
+    const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
+    const cleanHost = String(host).split(",")[0].trim();
+    const cleanProto = String(proto).split(",")[0].trim();
+    return `${cleanProto}://${cleanHost}/api/auth/google/callback`;
+  };
+
+  const getOAuth2Client = (req?: express.Request) => {
+    const redirectUri = getRedirectUri(req);
+    const client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      redirectUri
+    );
+    if (tokens) {
+      client.setCredentials(tokens);
+    }
+    return client;
+  };
 
   if (!process.env.APP_URL) {
     console.warn("⚠️ APP_URL is not set in .env. Falling back to localhost:3000 for OAuth callback.");
@@ -75,23 +92,36 @@ async function startServer() {
   let tokens: any = null;
   if (fs.existsSync(TOKEN_PATH)) {
     tokens = JSON.parse(fs.readFileSync(TOKEN_PATH, "utf8"));
-    oauth2Client.setCredentials(tokens);
   }
 
   app.get("/api/auth/google", (req, res) => {
-    const url = oauth2Client.generateAuthUrl({
-      access_type: "offline",
-      scope: SCOPES,
-      prompt: "consent select_account"
-    });
-    res.json({ url });
+    try {
+      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        console.error("Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET in server environment variables.");
+        return res.status(400).json({ 
+          error: "서버에 Google OAuth Client ID와 Client Secret이 설정되어 있지 않습니다. AI Studio 우측 상단의 'Settings' > 'Environment Variables' 메뉴에서 GOOGLE_CLIENT_ID와 GOOGLE_CLIENT_SECRET을 등록해 주세요." 
+        });
+      }
+
+      const client = getOAuth2Client(req);
+      const url = client.generateAuthUrl({
+        access_type: "offline",
+        scope: SCOPES,
+        prompt: "consent select_account"
+      });
+      res.json({ url });
+    } catch (error: any) {
+      console.error("Failed to generate Google Auth URL:", error);
+      res.status(500).json({ error: error.message || "구글 로그인 링크 생성 중 서버에서 오류가 발생했습니다." });
+    }
   });
 
   app.get("/api/auth/google/callback", async (req, res) => {
     const { code } = req.query;
     try {
-      const { tokens: newTokens } = await oauth2Client.getToken(code as string);
-      oauth2Client.setCredentials(newTokens);
+      const client = getOAuth2Client(req);
+      const { tokens: newTokens } = await client.getToken(code as string);
+      client.setCredentials(newTokens);
       fs.writeFileSync(TOKEN_PATH, JSON.stringify(newTokens));
       tokens = newTokens;
       
@@ -126,7 +156,6 @@ async function startServer() {
         fs.unlinkSync(TOKEN_PATH);
       }
       tokens = null;
-      oauth2Client.setCredentials({});
       res.json({ success: true });
     } catch (error) {
       console.error("Reset tokens error:", error);
@@ -146,7 +175,7 @@ async function startServer() {
       const startDateTime = new Date(`${date}T${time}:00`);
       const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour duration
 
-      const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+      const calendar = google.calendar({ version: "v3", auth: getOAuth2Client() });
       const calRes = await calendar.events.insert({
         calendarId: "primary",
         sendUpdates: "all",
@@ -307,7 +336,7 @@ async function startServer() {
       // 1. Create Google Calendar Event
       if (tokens && date && time) {
         try {
-          const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+          const calendar = google.calendar({ version: "v3", auth: getOAuth2Client() });
           const startDateTime = new Date(`${date}T${time}:00`);
           const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour duration
 
@@ -389,7 +418,7 @@ async function startServer() {
         console.warn("No Google Calendar tokens found. Skipped calendar deletion.");
         return res.json({ success: false, error: "Calendar not connected" });
       }
-      const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+      const calendar = google.calendar({ version: "v3", auth: getOAuth2Client() });
       await calendar.events.delete({
         calendarId: "primary",
         eventId: calendarEventId,

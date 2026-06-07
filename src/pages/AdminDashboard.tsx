@@ -324,8 +324,21 @@ export default function AdminDashboard() {
   const handleConnect = async () => {
     try {
       const res = await fetch("/api/auth/google");
-      const { url } = await res.json();
+      const data = await res.json();
+      
+      if (!res.ok || data.error || !data.url) {
+        alert(data.error || "구글 연동 중 오류가 발생했습니다. 구글 API 설정(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)이 완료되었는지 확인바랍니다.");
+        return;
+      }
+      
+      const { url } = data;
       const authWindow = window.open(url, "google_auth", "width=600,height=700");
+      
+      if (!authWindow || authWindow.closed || typeof authWindow.closed === "undefined") {
+        // Fallback for cases where popup window is blocked (especially in mobile or iframe environments)
+        window.location.href = url;
+        return;
+      }
       
       const handleMessage = (event: MessageEvent) => {
         if (event.data?.type === "OAUTH_AUTH_SUCCESS") {
@@ -336,6 +349,7 @@ export default function AdminDashboard() {
       window.addEventListener("message", handleMessage);
     } catch (err) {
       console.error(err);
+      alert("구글 연동 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
 
