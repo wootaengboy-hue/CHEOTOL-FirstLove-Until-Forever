@@ -18,7 +18,7 @@ import {
   Users 
 } from "lucide-react";
 import { auth, logout, db, syncUserProfile } from "../firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
 import AuthModal from "../components/AuthModal";
@@ -188,24 +188,7 @@ export default function AdminDashboard() {
         const confirmCancel = confirm("상태를 CANCEL로 변경하면 구글 캘린더에 연동된 일정이 자동으로 삭제됩니다. 계속하시겠습니까?");
         if (!confirmCancel) return;
 
-        try {
-          const res = await fetch("/api/calendar/event/delete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ calendarEventId: target.calendarEventId })
-          });
-          const resData = await res.json();
-          if (resData.success) {
-            alert("구글 캘린더에 연동되어 있던 일정이 성공적으로 자동 삭제되었습니다.");
-          } else {
-            console.warn("Failed to delete calendar event:", resData.error);
-            alert("상태는 CANCEL로 변경되나, 구글 캘린더 일정을 삭제하는 중 오류가 발생했습니다: " + (resData.error || "알 수 없음"));
-          }
-        } catch (calErr) {
-          console.error("Failed to delete event from calendar:", calErr);
-          alert("구글 캘린더 API 통신 오류로 인해 일정을 자동 삭제하지 못했습니다.");
-        }
-
+        await deleteFromGoogleCalendar(target);
         await updateDoc(docRef, { 
           status: nextStatus,
           calendarEventId: null
@@ -229,23 +212,7 @@ export default function AdminDashboard() {
 
     try {
       if (target && target.calendarEventId) {
-        try {
-          const res = await fetch("/api/calendar/event/delete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ calendarEventId: target.calendarEventId })
-          });
-          const resData = await res.json();
-          if (resData.success) {
-            alert("구글 캘린더에 등록되어 있던 일정도 안전하게 동시 삭제되었습니다.");
-          } else {
-            console.warn("Failed to delete calendar event:", resData.error);
-            alert("상담 내역은 삭제되나, 구글 캘린더 일정 삭제 단계에서 오류가 발생했습니다. (연동 상태 확인 필요)\n오류 내용: " + (resData.error || "알 수 없음"));
-          }
-        } catch (calErr) {
-          console.error("Failed to make delete request to calendar endpoint:", calErr);
-          alert("구글 캘린더 API 삭제 요청 중 통신 오류가 발생했습니다. 상담 내역만 삭제를 계속 진행합니다.");
-        }
+        await deleteFromGoogleCalendar(target);
       }
 
       const docRef = doc(db, "consultations", id);
@@ -303,19 +270,20 @@ export default function AdminDashboard() {
 
   const checkConnection = async () => {
     try {
-      const res = await fetch("/api/auth/google/status");
-      const data = await res.json();
-      setIsConnected(data.connected);
+      const token = localStorage.getItem("google_calendar_token");
+      const expiresStr = localStorage.getItem("google_calendar_token_expires");
+      const isValid = token && (!expiresStr || Date.now() < parseInt(expiresStr));
       
-      // If not connected, and not already dismissed in this session, show prompt
-      if (!data.connected) {
+      setIsConnected(!!isValid);
+      
+      if (!isValid) {
         const dismissed = sessionStorage.getItem("google_prompt_dismissed");
         if (dismissed !== "true") {
           setShowGooglePrompt(true);
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Connection check failed:", err);
     } finally {
       setLoading(false);
     }
@@ -323,33 +291,133 @@ export default function AdminDashboard() {
 
   const handleConnect = async () => {
     try {
-      const res = await fetch("/api/auth/google");
-      const data = await res.json();
+      const provider = new GoogleAuthProvider();
+      provider.addScope("https://www.googleapis.com/auth/calendar");
+      provider.setCustomParameters({ prompt: "consent select_account" });
       
-      if (!res.ok || data.error || !data.url) {
-        alert(data.error || "구글 연동 중 오류가 발생했습니다. 구글 API 설정(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)이 완료되었는지 확인바랍니다.");
-        return;
+      const result = await signInWithPopup(auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential?.accessToken;
+      
+      if (token) {
+        localStorage.setItem("google_calendar_token", token);
+         // Expires in slightly less than an hour (google tokens expire in 3600 seconds)
+        localStorage.setItem("google_calendar_token_expires", (Date.now() + 3500 * 1000).toString());
+        setIsConnected(true);
+        alert("구글 캘린더 연동 및 권한 설정에 성공했습니다!");
+      } else {
+        throw new Error("구글 계정정보에서 연동 키(Access Token)를 가져오지 못했습니다.");
       }
-      
-      const { url } = data;
-      const authWindow = window.open(url, "google_auth", "width=600,height=700");
-      
-      if (!authWindow || authWindow.closed || typeof authWindow.closed === "undefined") {
-        // Fallback for cases where popup window is blocked (especially in mobile or iframe environments)
-        window.location.href = url;
-        return;
-      }
-      
-      const handleMessage = (event: MessageEvent) => {
-        if (event.data?.type === "OAUTH_AUTH_SUCCESS") {
-          setIsConnected(true);
-          window.removeEventListener("message", handleMessage);
-        }
+    } catch (err: any) {
+      console.error("Google sync popup error:", err);
+      alert(`구글 연동 중 오류가 발생했습니다:\n${err.message || err}`);
+    }
+  };
+
+  const syncToGoogleCalendar = async (consultation: any) => {
+    const token = localStorage.getItem("google_calendar_token");
+    const expiresStr = localStorage.getItem("google_calendar_token_expires");
+    const expired = token && expiresStr && Date.now() > parseInt(expiresStr);
+
+    if (!token || expired) {
+      alert("구글 연동 세션이 만료되었거나 연결되어 있지 않습니다. 우측 화면의 [Connect Google Calendar] 버튼을 눌러 연동을 먼저 진행해 주세요.");
+      return;
+    }
+
+    const dateStr = consultation.date;
+    const timeStr = consultation.time;
+    if (!dateStr || !timeStr) {
+      alert("상담 일자와 시간이 지정되지 않은 예약입니다. 일정을 지정 후 등록해 주세요.");
+      return;
+    }
+
+    try {
+      const startDateTime = new Date(`${dateStr}T${timeStr}:00`);
+      const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour
+
+      const eventBody = {
+        summary: `[상담] ${consultation.name}님`,
+        description: `연락처: ${consultation.contact || consultation.phone || "없음"}\n내용: ${consultation.story || "없음"}`,
+        start: {
+          dateTime: startDateTime.toISOString(),
+          timeZone: "Asia/Seoul"
+        },
+        end: {
+          dateTime: endDateTime.toISOString(),
+          timeZone: "Asia/Seoul"
+        },
+        attendees: [
+          { email: "wootaengboy@daum.net" },
+          { email: "wootaengboy@gmail.com" }
+        ]
       };
-      window.addEventListener("message", handleMessage);
-    } catch (err) {
-      console.error(err);
-      alert("구글 연동 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+
+      const response = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(eventBody)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem("google_calendar_token");
+          setIsConnected(false);
+          throw new Error("구글 로그인 세션 확인에 실패했습니다. 다시 연동을 진행해 주세요.");
+        }
+        const errData = await response.json();
+        throw new Error(errData.error?.message || "Google Calendar API Error");
+      }
+
+      const calEvent = await response.json();
+      const calendarEventId = calEvent.id;
+
+      // Update in Firestore
+      const docRef = doc(db, "consultations", consultation.id);
+      await updateDoc(docRef, { calendarEventId });
+      alert("구글 캘린더에 예약 일정이 성공적으로 등록되었습니다!");
+    } catch (err: any) {
+      console.error("Calendar sync error:", err);
+      alert(`캘린더 동기화 중 오류가 발생했습니다:\n${err.message || err}`);
+    }
+  };
+
+  const deleteFromGoogleCalendar = async (consultation: any) => {
+    const calendarEventId = consultation.calendarEventId;
+    if (!calendarEventId) return;
+
+    const token = localStorage.getItem("google_calendar_token");
+    if (!token) {
+      alert("구글 연동 세션이 연결되어 있지 않습니다. 일정 삭제 기능은 생략합니다.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${calendarEventId}?sendUpdates=all`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok && response.status !== 404) {
+        if (response.status === 401) {
+          localStorage.removeItem("google_calendar_token");
+          setIsConnected(false);
+          throw new Error("구글 유효 세션이 상실되었습니다. 일정을 직접 수동 취소해 주시기 바랍니다.");
+        }
+        const errData = await response.json();
+        throw new Error(errData.error?.message || "Google Calendar Delete Error");
+      }
+
+      // Update in Firestore
+      const docRef = doc(db, "consultations", consultation.id);
+      await updateDoc(docRef, { calendarEventId: null });
+    } catch (err: any) {
+      console.error("Calendar deletion error:", err);
+      alert(`구글 캘린더 일정 삭제 중 오류:\n${err.message || err}`);
     }
   };
 
@@ -591,10 +659,12 @@ export default function AdminDashboard() {
                         <CheckCircle2 className="w-4 h-4" /> Already Connected
                       </button>
                       <button 
-                        onClick={async () => {
+                        onClick={() => {
                           if (confirm("연동을 해제하시겠습니까?")) {
-                            await fetch("/api/auth/google/reset", { method: "POST" });
+                            localStorage.removeItem("google_calendar_token");
+                            localStorage.removeItem("google_calendar_token_expires");
                             setIsConnected(false);
+                            alert("구글 연동이 성공적으로 해제되었습니다.");
                           }
                         }}
                         className="w-full py-3 text-red-500 hover:text-red-600 text-[10px] font-bold uppercase tracking-widest transition-colors cursor-pointer"
@@ -821,13 +891,34 @@ export default function AdminDashboard() {
                           </td>
                           <td className="py-4 px-4 whitespace-nowrap">
                             {c.date ? (
-                              <div className="flex flex-col gap-1">
+                              <div className="flex flex-col gap-1.5">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="font-bold text-gray-800">{c.date}</span>
-                                  {c.calendarEventId && (
-                                    <span className="inline-flex items-center text-[10px] text-green-600 font-sans font-semibold bg-green-50 border border-green-200/50 rounded px-1.5 py-0.5">
-                                      <Calendar className="w-3 h-3 mr-0.5" /> 연동됨
-                                    </span>
+                                  {c.calendarEventId ? (
+                                    <div className="flex items-center gap-1">
+                                      <span className="inline-flex items-center text-[10px] text-green-600 font-sans font-semibold bg-green-50 border border-green-200/50 rounded px-1.5 py-0.5">
+                                        <Calendar className="w-3 h-3 mr-0.5" /> 연동됨
+                                      </span>
+                                      <button
+                                        onClick={() => {
+                                          if (confirm("이 예약을 구글 캘린더에서 제거하시겠습니까?")) {
+                                            deleteFromGoogleCalendar(c);
+                                          }
+                                        }}
+                                        className="text-[10px] text-red-500 hover:text-red-700 underline ml-1 cursor-pointer"
+                                        title="구글 캘린더에서 일정 삭제"
+                                      >
+                                        제거
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => syncToGoogleCalendar(c)}
+                                      className="inline-flex items-center text-[10px] text-accent-pink font-sans font-black bg-accent-pink/5 border border-accent-pink/30 hover:bg-accent-pink hover:text-white rounded px-2 py-0.5 transition-colors cursor-pointer"
+                                      title="구글 캘린더에 일정 등록"
+                                    >
+                                      📅 캘린더 등록
+                                    </button>
                                   )}
                                 </div>
                                 <span className="text-gray-400 text-[10px] font-mono">{c.time}</span>

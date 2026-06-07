@@ -133,7 +133,14 @@ export default function Home() {
     }
 
     try {
-      // 2. Call backend to handle Google Calendar sync and email notifications
+      // 2. Call backend to handle Google Calendar sync and email notifications (Only if backend is present)
+      // GitHub Pages uses github.io which has no active backend server.
+      if (window.location.hostname.includes("github.io") || window.location.hostname.includes("gitpod") || window.location.hostname.includes("web.app") || window.location.hostname.includes("firebaseapp")) {
+        console.log("Static hosting context detected. Skipped backend notifications; Firestore durable save remains active.");
+        setIsSubmitted(true);
+        return;
+      }
+
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
