@@ -106,10 +106,14 @@ export default function AdminDashboard() {
     if (!isAdmin) return;
 
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
-      const docs = snapshot.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      }));
+      const docs = snapshot.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          uid: d.id, // Explicitly enforce uid is the document id
+          ...data
+        };
+      });
       // Sort users by registration timestamp
       docs.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
       setUsersList(docs);
@@ -878,6 +882,20 @@ export default function AdminDashboard() {
               </div>
               <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest font-sans">
                 사원 정원: {usersList.length}명 등록 중
+              </div>
+            </div>
+
+            {/* 사원 등록 안내 가이드 박스 */}
+            <div className="mb-8 p-6 bg-[#FAF9F5] border border-gray-100 rounded-[2rem] text-xs leading-relaxed text-gray-600 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="font-bold text-gray-900 flex items-center gap-1.5 text-sm">
+                  <Shield className="w-4 h-4 text-accent-pink" />
+                  새로운 사원 / 직원 계정 등록 절차안내
+                </div>
+                <p className="text-gray-500">
+                  사원 및 직원이 대시보드를 이용하려면 <strong>첫올 홈페이지에서 직접 회원가입(이메일 또는 구글)</strong>을 먼저 진행해야 합니다. 
+                  가입을 완료하면 본 목록에 이메일이 실시간으로 동기화되어 나타나며, 관리자가 우측의 <strong>권한 버튼(블로그/포트폴리오/관리자)</strong>을 클릭해 부여해주시면 대시보드 권한이 활성화됩니다.
+                </p>
               </div>
             </div>
 

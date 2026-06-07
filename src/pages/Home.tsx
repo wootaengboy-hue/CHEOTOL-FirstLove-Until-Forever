@@ -163,18 +163,21 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(3));
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const posts = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const fetchedPosts = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt
+        };
+      }) as any[];
       
-      if (posts.length === 0) {
-        setLatestPosts(INITIAL_POSTS.slice(0, 3));
-      } else {
-        setLatestPosts(posts);
-      }
+      const dbTitles = new Set(fetchedPosts.map(p => p.title));
+      const filteredSamples = INITIAL_POSTS.filter(p => !dbTitles.has(p.title));
+      const combined = [...fetchedPosts, ...filteredSamples];
+      setLatestPosts(combined.slice(0, 3));
     });
 
     return () => unsubscribe();
@@ -183,28 +186,28 @@ export default function Home() {
   return (
     <div className="min-h-screen selection:bg-accent-pink/50">
       {/* Hero Section */}
-      <section className="flex flex-col md:flex-row h-[calc(100vh-5rem)] w-full overflow-hidden">
+      <section className="flex flex-col md:flex-row min-h-[calc(100vh-5rem)] md:h-[calc(100vh-5rem)] w-full overflow-visible md:overflow-hidden">
         <motion.div 
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="w-full md:w-1/2 h-[50vh] md:h-full relative overflow-hidden"
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full md:w-1/2 h-[45vh] md:h-full relative overflow-hidden"
         >
           <div 
             className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 hover:scale-105"
             style={{ backgroundImage: `url('${homeMainImage}')` }}
           />
           <motion.div 
-            initial={{ scale: 0, rotate: -45 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-            className="absolute top-10 left-10 z-10"
+            initial={{ scale: 0, rotate: -45, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{ delay: 0.8, type: "spring", stiffness: 200, damping: 20 }}
+            className="absolute top-6 left-6 md:top-10 md:left-10 z-10"
           >
-            <div className="relative flex items-center justify-center w-32 h-32 bg-white/40 backdrop-blur-md rounded-full shadow-2xl border border-white/50">
+            <div className="relative flex items-center justify-center w-24 h-24 md:w-32 md:h-32 bg-white/40 backdrop-blur-md rounded-full shadow-2xl border border-white/50">
               <img 
                 src={logo2} 
                 alt="CHEOTOL Badge Logo" 
-                className="w-20 h-20 object-contain transition-transform duration-300 hover:scale-[1.05]"
+                className="w-14 h-14 md:w-20 md:h-20 object-contain transition-transform duration-300 hover:scale-[1.05]"
                 referrerPolicy="no-referrer"
               />
               <div className="absolute -bottom-2 whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-md">
@@ -214,16 +217,23 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-16 text-center bg-warm-beige/50 backdrop-blur-sm"
+        <div 
+          className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-16 text-center bg-warm-beige/50 backdrop-blur-sm self-stretch min-h-[50vh] md:min-h-0"
         >
-          <h3 className="text-lg md:text-xl mb-4 text-gray-600 tracking-widest font-sans font-bold uppercase break-keep">
+          <motion.h3 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.0, ease: "easeOut" }}
+            className="text-lg md:text-xl mb-4 text-gray-600 tracking-widest font-sans font-bold uppercase break-keep"
+          >
             CHEOTOL, 국제결혼의 <span className="bg-gradient-to-r from-accent-pink to-[#FF80B5] bg-clip-text text-transparent">새로운 기준</span>
-          </h3>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl leading-[1.1] md:leading-tight mb-8 font-serif font-black text-gray-900 drop-shadow-sm break-keep">
+          </motion.h3>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.4, ease: "easeOut" }}
+            className="text-4xl md:text-6xl lg:text-7xl leading-[1.1] md:leading-tight mb-8 font-serif font-black text-gray-900 drop-shadow-sm break-keep"
+          >
             세상 어디에선가,<br />
             오직 '당신'만을 기다려온<br />
             <span className="relative inline-block">
@@ -231,23 +241,32 @@ export default function Home() {
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: "100%" }}
-                transition={{ delay: 1, duration: 0.8 }}
+                transition={{ delay: 2.2, duration: 0.8 }}
                 className="absolute bottom-2 left-0 h-3 bg-accent-pink/30 -z-10"
               />
             </span>
-          </h1>
-          <p className="text-lg md:text-xl max-w-md text-gray-800 font-sans font-medium leading-relaxed break-keep">
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.8, ease: "easeOut" }}
+            className="text-lg md:text-xl max-w-md text-gray-800 font-sans font-medium leading-relaxed break-keep"
+          >
             편견의 국경을 넘어,<br />
             나를 온전히 응시하는 <span className="text-accent-pink font-bold">진심</span>을 마주하는 기적.
-          </p>
+          </motion.p>
           <motion.div 
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="mt-12 md:mt-24"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, y: [0, 10, 0] }}
+            transition={{ 
+              opacity: { duration: 0.8, delay: 2.4 },
+              y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+            }}
+            className="mt-8 md:mt-24"
           >
             <ChevronDown className="text-accent-pink w-8 h-8" />
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Journey Timeline Section */}

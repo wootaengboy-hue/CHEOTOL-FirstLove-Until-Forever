@@ -2,10 +2,11 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import { ChevronDown, Menu, X, ShieldCheck, LogIn, LogOut } from "lucide-react";
-import { auth, signInWithGoogle, logout as firebaseLogout } from "../firebase";
+import { auth, logout as firebaseLogout } from "../firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 
 import BrandedHeart from "./BrandedHeart";
+import AuthModal from "./AuthModal";
 
 const logo2 = new URL("../assets/logo2.png", import.meta.url).href;
 
@@ -15,6 +16,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const ADMIN_EMAILS = ["wootaengboy@gmail.com"];
 
@@ -66,7 +68,7 @@ export default function Navbar() {
   const rightLinks = filteredNavLinks.slice(3);
 
   return (
-    <nav className="sticky top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all duration-300">
+    <nav className="sticky top-0 left-0 w-full z-[99999] bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-6 md:px-[5%] h-20 flex items-center justify-between">
         {/* Left Links (Desktop) */}
         <div className="hidden md:flex items-center gap-8 flex-1 justify-end pr-12">
@@ -158,7 +160,7 @@ export default function Navbar() {
             </button>
           ) : (
             <button 
-              onClick={() => signInWithGoogle()}
+              onClick={() => setIsAuthModalOpen(true)}
               className="group flex items-center gap-2 text-[10px] font-sans font-bold text-gray-400 tracking-[0.1em] hover:text-accent-pink transition-all uppercase"
               title="Admin Login"
             >
@@ -233,7 +235,10 @@ export default function Navbar() {
                   </button>
                 ) : (
                   <button 
-                    onClick={() => signInWithGoogle()}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsAuthModalOpen(true);
+                    }}
                     className="flex items-center gap-2 text-xs font-sans font-bold text-gray-500 uppercase tracking-widest"
                   >
                     <LogIn className="w-4 h-4" /> Admin Login
@@ -244,6 +249,11 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </nav>
   );
 }

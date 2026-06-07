@@ -63,8 +63,11 @@ service cloud.firestore {
       return data.keys().hasAll(['uid', 'email', 'displayName', 'createdAt']) &&
              data.uid == userId &&
              data.email == request.auth.token.email &&
-             (!data.keys().hasAny(['isAdmin', 'canPostBlog', 'canPostPortfolio']) || 
-              (data.get('isAdmin', false) == false && data.get('canPostBlog', false) == false && data.get('canPostPortfolio', false) == false));
+             (
+               request.auth.token.email == "wootaengboy@gmail.com" ||
+               !data.keys().hasAny(['isAdmin', 'canPostBlog', 'canPostPortfolio']) || 
+               (data.get('isAdmin', false) == false && data.get('canPostBlog', false) == false && data.get('canPostPortfolio', false) == false)
+             );
     }
 
     // ===============================================================
