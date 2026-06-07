@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Edit2, Trash2, X, LogIn, LogOut, Loader2, Image as ImageIcon } from "lucide-react";
-import imageCompression from "browser-image-compression";
+import { compressImage } from "../utils/imageCompressor";
 import { 
   collection, 
   onSnapshot, 
@@ -21,12 +21,6 @@ import { IPortfolioItem, INITIAL_PORTFOLIO } from "../constants/blogData";
 
 const ADMIN_EMAIL = "wootaengboy@gmail.com";
 
-const imageCompressionOptions = {
-  maxSizeMB: 0.3,
-  maxWidthOrHeight: 1280,
-  useWebWorker: true,
-};
-
 export default function Portfolio() {
   const navigate = useNavigate();
   const [items, setItems] = useState<IPortfolioItem[]>([]);
@@ -38,6 +32,7 @@ export default function Portfolio() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [canPostPortfolio, setCanPostPortfolio] = useState(false);
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -64,7 +59,10 @@ export default function Portfolio() {
         };
       }) as IPortfolioItem[];
       
-      setItems(fetchedItems.length > 0 ? fetchedItems : INITIAL_PORTFOLIO);
+      // Merge fetched items with INITIAL_PORTFOLIO to avoid samples disappearing
+      const dbTitles = new Set(fetchedItems.map(p => p.title));
+      const filteredSamples = INITIAL_PORTFOLIO.filter(p => !dbTitles.has(p.title));
+      setItems([...fetchedItems, ...filteredSamples]);
       setLoading(false);
     }, (error) => {
       console.error("Firestore snapshot error:", error);
@@ -72,14 +70,41 @@ export default function Portfolio() {
       setLoading(false);
     });
 
-    const authUnsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setIsAdmin(user?.email === ADMIN_EMAIL);
+    let unsubUserDoc: (() => void) | null = null;
+    const authUnsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        setIsAdmin(currentUser.email === ADMIN_EMAIL);
+        setCanPostPortfolio(currentUser.email === ADMIN_EMAIL);
+        
+        const userRef = doc(db, "users", currentUser.uid);
+        unsubUserDoc = onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setIsAdmin(data.isAdmin || currentUser.email === ADMIN_EMAIL);
+            setCanPostPortfolio(data.canPostPortfolio || data.isAdmin || currentUser.email === ADMIN_EMAIL);
+          } else {
+            const isRoot = currentUser.email === ADMIN_EMAIL;
+            setIsAdmin(isRoot);
+            setCanPostPortfolio(isRoot);
+          }
+        }, (error) => {
+          console.error("Error reading user permissions in Portfolio.tsx:", error);
+        });
+      } else {
+        setIsAdmin(false);
+        setCanPostPortfolio(false);
+        if (unsubUserDoc) {
+          unsubUserDoc();
+          unsubUserDoc = null;
+        }
+      }
     });
 
     return () => {
       unsubscribe();
       authUnsubscribe();
+      if (unsubUserDoc) unsubUserDoc();
     };
   }, []);
 
@@ -106,7 +131,7 @@ export default function Portfolio() {
       setIsContentImageUploading(true);
       setIsCompressing(true);
       try {
-        const compressedFile = await imageCompression(file, imageCompressionOptions);
+        const compressedFile = await compressImage(file);
         setIsCompressing(false);
         const storageRef = ref(storage, `portfolio_content/${Date.now()}_${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, compressedFile);
@@ -142,7 +167,7 @@ export default function Portfolio() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAdmin || !user) return;
+    if (!(isAdmin || canPostPortfolio) || !user) return;
 
     setIsUploading(true);
     try {
@@ -150,7 +175,7 @@ export default function Portfolio() {
 
       if (selectedFile) {
         setIsCompressing(true);
-        const compressedFile = await imageCompression(selectedFile, imageCompressionOptions);
+        const compressedFile = await compressImage(selectedFile);
         setIsCompressing(false);
         const storageRef = ref(storage, `portfolio/${Date.now()}_${selectedFile.name}`);
         const uploadTask = uploadBytesResumable(storageRef, compressedFile);
@@ -205,7 +230,7 @@ export default function Portfolio() {
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isAdmin || !window.confirm("정말 삭제하시겠습니까?")) return;
+    if (!(isAdmin || canPostPortfolio) || !window.confirm("정말 삭제하시겠습니까?")) return;
     try {
       await deleteDoc(doc(db, "portfolio", id));
     } catch (error) {
@@ -240,7 +265,7 @@ export default function Portfolio() {
   };
 
   const handleRestore = async () => {
-    if (!isAdmin) return;
+    if (!(isAdmin || canPostPortfolio)) return;
     try {
       for (const item of INITIAL_PORTFOLIO) {
         const { id, ...itemData } = item;
@@ -279,7 +304,7 @@ export default function Portfolio() {
             </button>
           ) : (
             <div className="flex items-center gap-4">
-              {isAdmin && (
+              {(isAdmin || canPostPortfolio) && (
                 <>
                   <button 
                     onClick={() => { resetForm(); setIsModalOpen(true); }}
@@ -334,7 +359,7 @@ export default function Portfolio() {
                 <p className="text-xs text-gray-300 font-sans font-light line-clamp-2">{item.desc}</p>
               </div>
 
-              {isAdmin && (
+              {(isAdmin || canPostPortfolio) && (
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={(e) => openEditModal(item, e)}

@@ -147,8 +147,9 @@ async function startServer() {
       const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour duration
 
       const calendar = google.calendar({ version: "v3", auth: oauth2Client });
-      await calendar.events.insert({
+      const calRes = await calendar.events.insert({
         calendarId: "primary",
+        sendUpdates: "all",
         requestBody: {
           summary: `[상담신청] ${name}님`,
           description: `연락처: ${phone}\n메시지: ${message}`,
@@ -160,10 +161,15 @@ async function startServer() {
             dateTime: endDateTime.toISOString(),
             timeZone: "Asia/Seoul",
           },
+          attendees: [
+            { email: "wootaengboy@daum.net" },
+            { email: "wootaengboy@gmail.com" }
+          ]
         },
       });
 
-      res.json({ success: true });
+      console.log("Google Calendar Event created with attendees:", calRes.data.id);
+      res.json({ success: true, calendarEventId: calRes.data.id });
     } catch (error) {
       console.error("Failed to create calendar event:", error);
       res.status(500).json({ error: "Failed to process consultation request" });
@@ -297,6 +303,7 @@ async function startServer() {
     `;
 
     try {
+      let calendarEventId = "";
       // 1. Create Google Calendar Event
       if (tokens && date && time) {
         try {
@@ -304,47 +311,95 @@ async function startServer() {
           const startDateTime = new Date(`${date}T${time}:00`);
           const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour duration
 
-          await calendar.events.insert({
+          const calRes = await calendar.events.insert({
             calendarId: "primary",
+            sendUpdates: "all",
             requestBody: {
               summary: `[상담] ${name}님`,
               description: `연락처: ${contact}\n내용: ${story}`,
               start: { dateTime: startDateTime.toISOString() },
               end: { dateTime: endDateTime.toISOString() },
+              attendees: [
+                { email: "wootaengboy@daum.net" },
+                { email: "wootaengboy@gmail.com" }
+              ]
             },
           });
-          console.log("Google Calendar Event created.");
+          calendarEventId = calRes.data.id || "";
+          console.log("Google Calendar Event created with attendees:", calendarEventId);
         } catch (calErr) {
           console.error("Google Calendar Error:", calErr);
         }
       }
 
-      // 2. Send Email
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.daum.net",
-        port: parseInt(process.env.SMTP_PORT || "465"),
-        secure: true, // true for 465, false for other ports
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
+      // 2. Send Email via SMTP if credentials are configured
+      let emailSent = false;
+      if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+        try {
+          const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST || "smtp.daum.net",
+            port: parseInt(process.env.SMTP_PORT || "465"),
+            secure: true, // true for 465, false for other ports
+            auth: {
+              user: process.env.SMTP_USER,
+              pass: process.env.SMTP_PASS,
+            },
+          });
 
-      await transporter.sendMail({
-        from: `"CHEOTOL Consultation" <${process.env.SMTP_USER}>`,
-        to: "wootaengboy@daum.net",
-        subject: `[상담신청] ${name}님의 여정 시작하기`,
-        html: htmlContent,
-      });
+          await transporter.sendMail({
+            from: `"CHEOTOL Consultation" <${process.env.SMTP_USER}>`,
+            to: "wootaengboy@daum.net",
+            subject: `[상담신청] ${name}님의 여정 시작하기`,
+            html: htmlContent,
+          });
+          emailSent = true;
+          console.log("SMTP Email sent successfully.");
+        } catch (mailErr) {
+          console.error("Nodemailer SMTP email sending error:", mailErr);
+        }
+      } else {
+        console.warn("SMTP_USER and SMTP_PASS are not configured in environment variables. Skipped sending custom SMTP mail.");
+      }
 
+      // We return success true since we registered it in Google Calendar, and on the frontend it is saved to Firestore.
+      res.json({ 
+        success: true, 
+        emailSent, 
+        calendarSynced: !!tokens,
+        calendarEventId
+      });
+    } catch (error) {
+      console.error("Email sending flow error:", error);
+      // Return success even if email module fails because we secured the data in database
+      res.json({ 
+        success: true, 
+        error: "이메일 발송에 실패했지만, 상담 카드가 안전하게 접수되었습니다." 
+      });
+    }
+  });
+
+  // API to delete a calendar event when a consultation request is deleted
+  app.post("/api/calendar/event/delete", async (req, res) => {
+    try {
+      const { calendarEventId } = req.body;
+      if (!calendarEventId) {
+        return res.status(400).json({ error: "No calendarEventId provided" });
+      }
+      if (!tokens) {
+        console.warn("No Google Calendar tokens found. Skipped calendar deletion.");
+        return res.json({ success: false, error: "Calendar not connected" });
+      }
+      const calendar = google.calendar({ version: "v3", auth: oauth2Client });
+      await calendar.events.delete({
+        calendarId: "primary",
+        eventId: calendarEventId,
+        sendUpdates: "all"
+      });
+      console.log(`Google Calendar Event ${calendarEventId} deleted.`);
       res.json({ success: true });
     } catch (error) {
-      console.error("Email sending error:", error);
-      // Even if email fails, we return the data so the client can show the card
-      res.status(500).json({ 
-        error: "이메일 발송에 실패했습니다. 하지만 상담 정보는 정상적으로 접수되었습니다.",
-        details: error instanceof Error ? error.message : String(error)
-      });
+      console.error("Failed to delete calendar event:", error);
+      res.status(500).json({ error: "Failed to delete calendar event" });
     }
   });
 

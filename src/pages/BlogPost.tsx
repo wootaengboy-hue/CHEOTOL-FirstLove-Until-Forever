@@ -134,7 +134,7 @@ export default function BlogPost() {
       </div>
 
       {/* Article Content */}
-      <article className="px-6 md:px-[5%] max-w-3xl mx-auto pb-32">
+      <article className="px-6 md:px-[5%] max-w-3xl mx-auto pb-12">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -167,6 +167,19 @@ export default function BlogPost() {
         </motion.div>
       </article>
 
+      {/* Back to Blog List Center Button */}
+      <div className="max-w-3xl mx-auto px-6 md:px-[5%] pb-24 text-center">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate('/blog')}
+          className="inline-flex items-center gap-2 px-8 py-4 bg-white border border-gray-200 text-gray-800 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:text-accent-pink hover:border-accent-pink/30 hover:bg-accent-pink/5 transition-all shadow-md"
+        >
+          <ArrowLeft className="w-4 h-4 text-accent-pink" />
+          전체 포스팅 목록으로 돌아가기
+        </motion.button>
+      </div>
+
       {/* Next Post Section */}
       {nextPost && (
         <section className="border-t border-gray-200 bg-white py-32 px-6 md:px-[5%]">
@@ -197,9 +210,9 @@ export default function BlogPost() {
       <footer className="py-20 bg-[#F9F8F6] text-center border-t border-gray-100">
         <button 
           onClick={() => navigate('/blog')}
-          className="text-xs font-sans font-bold text-gray-400 uppercase tracking-[0.3em] hover:text-accent-pink transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-sans font-bold text-gray-500 hover:text-accent-pink transition-colors uppercase tracking-[0.2em]"
         >
-          Back to Journal
+          <ArrowLeft className="w-4 h-4" /> 전체 포스팅 보기
         </button>
       </footer>
     </div>

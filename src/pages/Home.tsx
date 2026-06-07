@@ -1,13 +1,19 @@
 import { useState, FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronDown, Send, Search, Video, MapPin, Home as HomeIcon, ArrowLeft, ArrowRight, CheckCircle2, Loader2, MessageCircle } from "lucide-react";
+import { ChevronDown, Send, Search, Video, MapPin, Home as HomeIcon, ArrowLeft, ArrowRight, CheckCircle2, Loader2, MessageCircle, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { db } from "../firebase";
-import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, addDoc, updateDoc } from "firebase/firestore";
 import { INITIAL_POSTS, INITIAL_PORTFOLIO } from "../constants/blogData";
 
 import BrandedHeart from "../components/BrandedHeart";
+import { useKakaoLink } from "../components/useKakaoLink";
+import { useGoogleFormLink } from "../components/useGoogleFormLink";
+
+const logo1 = new URL("../assets/logo1.png", import.meta.url).href;
+const logo2 = new URL("../assets/logo2.png", import.meta.url).href;
+const homeMainImage = new URL("../assets/home_main.png", import.meta.url).href;
 
 const STEPS = [
   { 
@@ -67,8 +73,29 @@ const STEPS = [
   }
 ];
 
+const formatPhoneNumber = (value: string) => {
+  if (value.includes("@")) return value;
+  const clean = value.replace(/[^0-9]/g, "");
+  if (clean.length === 0) return value;
+  if (/[a-zA-Z]/.test(value)) return value;
+
+  if (clean.startsWith("02")) {
+    if (clean.length <= 2) return clean;
+    if (clean.length <= 5) return `${clean.slice(0, 2)}-${clean.slice(2)}`;
+    if (clean.length <= 9) return `${clean.slice(0, 2)}-${clean.slice(2, 5)}-${clean.slice(5)}`;
+    return `${clean.slice(0, 2)}-${clean.slice(2, 6)}-${clean.slice(6, 10)}`;
+  }
+
+  if (clean.length <= 3) return clean;
+  if (clean.length <= 6) return `${clean.slice(0, 3)}-${clean.slice(3)}`;
+  if (clean.length <= 10) return `${clean.slice(0, 3)}-${clean.slice(3, 6)}-${clean.slice(6)}`;
+  return `${clean.slice(0, 3)}-${clean.slice(3, 7)}-${clean.slice(7, 11)}`;
+};
+
 export default function Home() {
   const navigate = useNavigate();
+  const { openKakaoChat } = useKakaoLink();
+  const { openGoogleForm } = useGoogleFormLink();
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const [latestPosts, setLatestPosts] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,7 +105,7 @@ export default function Home() {
     contact: "",
     date: "",
     time: "",
-    story: ""
+    story: "구글 설문지에서 상세 정보 작성 예정"
   });
 
   const currentStepData = activeStep ? STEPS.find(s => s.id === activeStep) : null;
@@ -87,7 +114,26 @@ export default function Home() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    let docRef: any = null;
     try {
+      // 1. Save to Firestore "consultations" first for 100% durable local lead storage
+      docRef = await addDoc(collection(db, "consultations"), {
+        name: formData.name,
+        contact: formData.contact,
+        date: formData.date,
+        time: formData.time,
+        story: formData.story,
+        submittedAt: new Date().toISOString(),
+        source: "Home Slide/Form",
+        status: "NEW"
+      });
+      console.log("Consultation saved to Firestore successfully.");
+    } catch (fsError) {
+      console.error("Firestore database save error:", fsError);
+    }
+
+    try {
+      // 2. Call backend to handle Google Calendar sync and email notifications
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -96,16 +142,21 @@ export default function Home() {
 
       if (response.ok) {
         setIsSubmitted(true);
+        const data = await response.json();
+        if (data.calendarEventId && docRef) {
+          await updateDoc(docRef, { calendarEventId: data.calendarEventId });
+          console.log("Updated Firestore document with calendarEventId:", data.calendarEventId);
+        }
       } else {
-        // Even if email fails, we show the card in UI as a "Consultation Card"
-        // But we log the error
+        // Even if email/calendar sync responds with an error, the consultation is saved to Firestore,
+        // and we show the consultation card in GUI to reassure the user
         const errorData = await response.json();
-        console.error("Email error:", errorData);
+        console.error("Backend warning or error:", errorData);
         setIsSubmitted(true);
       }
     } catch (error) {
-      console.error("Submission error:", error);
-      setIsSubmitted(true); // Still show the card in UI for the user to see
+      console.error("Submission backend API error:", error);
+      setIsSubmitted(true); // Still show card to user as it's saved in Firestore
     } finally {
       setIsSubmitting(false);
     }
@@ -141,7 +192,7 @@ export default function Home() {
         >
           <div 
             className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 hover:scale-105"
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80&w=1000')" }}
+            style={{ backgroundImage: `url('${homeMainImage}')` }}
           />
           <motion.div 
             initial={{ scale: 0, rotate: -45 }}
@@ -150,7 +201,12 @@ export default function Home() {
             className="absolute top-10 left-10 z-10"
           >
             <div className="relative flex items-center justify-center w-32 h-32 bg-white/40 backdrop-blur-md rounded-full shadow-2xl border border-white/50">
-              <BrandedHeart size={64} useGradient />
+              <img 
+                src={logo2} 
+                alt="CHEOTOL Badge Logo" 
+                className="w-20 h-20 object-contain transition-transform duration-300 hover:scale-[1.05]"
+                referrerPolicy="no-referrer"
+              />
               <div className="absolute -bottom-2 whitespace-nowrap bg-white px-3 py-1 rounded-full shadow-md">
                 <span className="text-[8px] font-sans font-black tracking-widest text-gray-800 uppercase">First Love</span>
               </div>
@@ -218,9 +274,15 @@ export default function Home() {
               className="w-full"
             >
               <div className="text-left mb-16">
-                <h2 className="text-4xl md:text-6xl mb-6 font-serif font-black text-gray-900 break-keep leading-[1.1] md:leading-tight">
-                  <span className="bg-gradient-to-r from-gray-900 to-gray-500 bg-clip-text text-transparent">진짜 나</span>를 찾는 여정
-                </h2>
+                <div className="space-y-3 mb-6">
+                  <h2 className="text-4xl md:text-6xl font-serif font-black text-gray-900 break-keep leading-[1.1] md:leading-tight">
+                    <span className="bg-gradient-to-r from-gray-900 to-gray-500 bg-clip-text text-transparent">진짜 나</span>를 찾는 여정
+                  </h2>
+                  <div className="flex items-center gap-3 text-2xl md:text-4xl font-sans font-bold text-accent-pink tracking-[0.1em] lowercase mt-4">
+                    <span className="w-2.5 h-2.5 bg-accent-pink rounded-full animate-pulse" />
+                    첫사랑이 올 때까지
+                  </div>
+                </div>
                 <p className="text-xl md:text-2xl max-w-2xl text-gray-800 font-sans font-medium leading-relaxed break-keep">
                   한국에서의 결혼이 차가운 현실이라면,<br />
                   세상 밖에서 만난 인연은 <span className="text-accent-pink font-bold">따뜻한 위로</span>였습니다.<br />
@@ -585,7 +647,7 @@ export default function Home() {
                       required
                       type="text" 
                       value={formData.contact}
-                      onChange={(e) => setFormData({...formData, contact: e.target.value})}
+                      onChange={(e) => setFormData({...formData, contact: formatPhoneNumber(e.target.value)})}
                       placeholder="편하게 연락받으실 번호나 이메일"
                       className="w-full p-4 border-none rounded-xl bg-white focus:ring-2 focus:ring-accent-pink outline-none transition-all font-sans"
                     />
@@ -611,16 +673,6 @@ export default function Home() {
                         className="w-full p-4 border-none rounded-xl bg-white focus:ring-2 focus:ring-accent-pink outline-none transition-all font-sans"
                       />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-sans font-medium text-gray-700">나의 이야기 (Your Story)</label>
-                    <textarea 
-                      required
-                      value={formData.story}
-                      onChange={(e) => setFormData({...formData, story: e.target.value})}
-                      placeholder="어떤 인연을 꿈꾸시는지 편하게 적어주세요."
-                      className="w-full p-4 border-none rounded-xl bg-white h-32 resize-none focus:ring-2 focus:ring-accent-pink outline-none transition-all font-sans"
-                    />
                   </div>
                   <motion.button 
                     whileHover={{ scale: 1.02 }}
@@ -650,16 +702,23 @@ export default function Home() {
                     <CheckCircle2 className="w-10 h-10" />
                   </div>
                 </div>
-                <h2 className="text-3xl font-serif text-gray-900 mb-2">상담 카드가 생성되었습니다!</h2>
-                <p className="text-gray-500 mb-6 font-sans">작성하신 내용이 wootaengboy@daum.net으로 발송되었습니다.</p>
+                <h2 className="text-3xl font-serif text-gray-900 mb-2">상담 신청이 완료되었습니다!</h2>
+                <p className="text-gray-500 mb-6 font-sans">작성해주신 일정 정보가 구글 캘린더에 안전하게 연동되었습니다.<br />아래 버튼을 눌러 상세 상담 분석용 설문지와 오픈채팅 연결을 진행해주세요.</p>
 
-                <div className="flex justify-center mb-10">
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-10">
                   <button 
-                    onClick={() => (window as any).Tawk_API?.toggle()}
-                    className="bg-accent-pink text-gray-900 px-8 py-4 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-accent-pink/20 flex items-center gap-2"
+                    onClick={openGoogleForm}
+                    className="w-full sm:w-auto bg-purple-600 text-white px-8 py-4 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2"
+                  >
+                    <FileText className="w-5 h-5" />
+                    상세 설문지 작성지 (구글 폼)
+                  </button>
+                  <button 
+                    onClick={openKakaoChat}
+                    className="w-full sm:w-auto bg-[#FAE100] text-[#3C1E1E] px-8 py-4 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-[#FAE100]/20 flex items-center justify-center gap-2"
                   >
                     <MessageCircle className="w-5 h-5" />
-                    실시간 상담하기
+                    실시간 카톡 상담
                   </button>
                 </div>
 
@@ -690,9 +749,9 @@ export default function Home() {
                       <p className="text-lg font-sans font-medium text-gray-900 border-b border-gray-50 pb-2">{formData.date} {formData.time}</p>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-sans font-bold text-gray-400 uppercase tracking-widest mb-1">Story</label>
+                      <label className="block text-[10px] font-sans font-bold text-gray-400 uppercase tracking-widest mb-1">Detailed Story</label>
                       <p className="text-base font-sans text-gray-700 leading-relaxed bg-gray-50/50 p-4 rounded-xl italic">
-                        "{formData.story}"
+                        "구글 설문지가 연동되었습니다. 상세 가치관 분석 양식은 설문지를 통해 제출해 주세요."
                       </p>
                     </div>
                   </div>
@@ -723,12 +782,13 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="py-12 text-center border-t border-gray-200">
-        <div className="flex justify-center items-center gap-4 mb-6">
-          <BrandedHeart size={32} color="#D81B60" className="opacity-60" />
-          <div className="flex flex-col items-center">
-            <span className="text-xl font-sans font-black tracking-tight text-gray-500">CHEOTOL</span>
-            <p className="text-[9px] font-sans font-bold tracking-[0.4em] text-gray-400 uppercase mt-2">First Love Until Forever</p>
-          </div>
+        <div className="flex justify-center items-center mb-6">
+          <img 
+            src={logo1} 
+            alt="CHEOTOL Logo" 
+            className="h-28 md:h-32 w-auto object-contain opacity-85 hover:opacity-100 transition-opacity duration-300"
+            referrerPolicy="no-referrer"
+          />
         </div>
         <p className="text-xs text-gray-400 font-sans font-light">
           © 2026 CHEOTOL. All rights reserved.

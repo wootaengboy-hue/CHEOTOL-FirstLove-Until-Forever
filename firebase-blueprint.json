@@ -1,5 +1,20 @@
 {
   "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user profile entity containing role and posting permissions.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique identifier of the user (same as Auth UID)." },
+        "email": { "type": "string", "description": "Email address of the user." },
+        "displayName": { "type": "string", "description": "The user's display name or nickname." },
+        "isAdmin": { "type": "boolean", "description": "Whether this user is a full manager/admin of the app." },
+        "canPostBlog": { "type": "boolean", "description": "Whether this employee can draft/manage blog posts." },
+        "canPostPortfolio": { "type": "boolean", "description": "Whether this employee can draft/manage portfolio items." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp." }
+      },
+      "required": ["uid", "email"]
+    },
     "Post": {
       "title": "Blog Post",
       "description": "A blog post entity containing content and metadata.",
@@ -37,6 +52,10 @@
     }
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of registered employees/users."
+    },
     "/posts/{postId}": {
       "schema": "Post",
       "description": "Collection of blog posts."

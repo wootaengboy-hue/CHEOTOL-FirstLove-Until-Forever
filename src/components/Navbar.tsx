@@ -7,6 +7,8 @@ import { onAuthStateChanged, User } from "firebase/auth";
 
 import BrandedHeart from "./BrandedHeart";
 
+const logo2 = new URL("../assets/logo2.png", import.meta.url).href;
+
 export default function Navbar() {
   const location = useLocation();
   const [isServicesOpen, setIsServicesOpen] = useState(false);
@@ -45,8 +47,23 @@ export default function Navbar() {
     { name: "CONTACT", path: "/contact" },
   ];
 
-  const leftLinks = navLinks.slice(0, 3);
-  const rightLinks = navLinks.slice(3);
+  const filteredNavLinks = navLinks.map(link => {
+    if (link.name === "SERVICES" && link.subItems) {
+      return {
+        ...link,
+        subItems: link.subItems.filter(sub => {
+          if (sub.path === "/services/uzbekistan") {
+            return isAdmin;
+          }
+          return true;
+        })
+      };
+    }
+    return link;
+  });
+
+  const leftLinks = filteredNavLinks.slice(0, 3);
+  const rightLinks = filteredNavLinks.slice(3);
 
   return (
     <nav className="sticky top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all duration-300">
@@ -101,30 +118,13 @@ export default function Navbar() {
         </div>
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-4 group px-4 flex-shrink-0">
-          <div className="relative flex items-center justify-center">
-            <motion.div
-              animate={{ 
-                scale: [1, 1.05, 1],
-              }}
-              transition={{ 
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="relative"
-            >
-              <BrandedHeart size={36} useGradient className="relative" />
-            </motion.div>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[26px] font-sans font-black tracking-[0.05em] bg-gradient-to-r from-[#D81B60] to-[#FFA726] bg-clip-text text-transparent">
-              CHEOTOL
-            </span>
-            <span className="text-[7px] font-sans font-bold tracking-[0.3em] text-gray-400 uppercase mt-1">
-              First Love Until Forever
-            </span>
-          </div>
+        <Link to="/" className="flex items-center flex-shrink-0">
+          <img 
+            src={logo2} 
+            alt="CHEOTOL Logo" 
+            className="h-16 md:h-20 w-auto object-contain transition-transform duration-300 hover:scale-[1.02]"
+            referrerPolicy="no-referrer"
+          />
         </Link>
 
         {/* Right Links (Desktop) */}
@@ -188,7 +188,7 @@ export default function Navbar() {
             className="md:hidden bg-white border-t border-gray-100 overflow-hidden"
           >
             <div className="flex flex-col p-6 gap-4">
-              {navLinks.map((link) => (
+              {filteredNavLinks.map((link) => (
                 <div key={link.path} className="flex flex-col gap-2">
                   <Link
                     to={link.path}

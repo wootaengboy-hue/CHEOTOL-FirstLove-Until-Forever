@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, Plus, Edit2, Trash2, LogIn, LogOut, X, Image as ImageIcon, Type, Calendar as CalendarIcon, Tag, AlignLeft, FileText, Star, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Plus, Edit2, Trash2, LogIn, LogOut, X, Image as ImageIcon, Type, Calendar as CalendarIcon, Tag, AlignLeft, FileText, Star, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import imageCompression from "browser-image-compression";
+import { compressImage } from "../utils/imageCompressor";
 import { db, auth, signInWithGoogle, logout, storage } from "../firebase";
 import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { INITIAL_POSTS, IBlogPost as BlogPost } from "../constants/blogData";
 
-const imageCompressionOptions = {
-  maxSizeMB: 0.3,
-  maxWidthOrHeight: 1280,
-  useWebWorker: true,
-};
-
 export default function Blog() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [canPostBlog, setCanPostBlog] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,9 +23,7 @@ export default function Blog() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isContentImageUploading, setIsContentImageUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [subscribeEmail, setSubscribeEmail] = useState("");
-  const [isSubscribing, setIsSubscribing] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
 
   const [formData, setFormData] = useState({
     category: "JOURNEY",
@@ -45,7 +38,7 @@ export default function Blog() {
   const ADMIN_EMAIL = "wootaengboy@gmail.com";
 
   const handleRestore = async () => {
-    if (!isAdmin || !user) return;
+    if (!(isAdmin || canPostBlog) || !user) return;
     if (window.confirm("기존의 5개 포스트를 복구하시겠습니까?")) {
       try {
         for (const post of INITIAL_POSTS) {
@@ -64,9 +57,35 @@ export default function Blog() {
   };
 
   useEffect(() => {
+    let unsubUserDoc: (() => void) | null = null;
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setIsAdmin(currentUser?.email === ADMIN_EMAIL);
+      if (currentUser) {
+        setIsAdmin(currentUser.email === ADMIN_EMAIL);
+        setCanPostBlog(currentUser.email === ADMIN_EMAIL);
+        
+        const userRef = doc(db, "users", currentUser.uid);
+        unsubUserDoc = onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setIsAdmin(data.isAdmin || currentUser.email === ADMIN_EMAIL);
+            setCanPostBlog(data.canPostBlog || data.isAdmin || currentUser.email === ADMIN_EMAIL);
+          } else {
+            const isRoot = currentUser.email === ADMIN_EMAIL;
+            setIsAdmin(isRoot);
+            setCanPostBlog(isRoot);
+          }
+        }, (error) => {
+          console.error("Error reading user permissions in Blog.tsx:", error);
+        });
+      } else {
+        setIsAdmin(false);
+        setCanPostBlog(false);
+        if (unsubUserDoc) {
+          unsubUserDoc();
+          unsubUserDoc = null;
+        }
+      }
     });
 
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
@@ -81,11 +100,9 @@ export default function Blog() {
         };
       }) as BlogPost[];
       
-      if (fetchedPosts.length === 0) {
-        setPosts(INITIAL_POSTS);
-      } else {
-        setPosts(fetchedPosts);
-      }
+      const dbTitles = new Set(fetchedPosts.map(p => p.title));
+      const filteredSamples = INITIAL_POSTS.filter(p => !dbTitles.has(p.title));
+      setPosts([...fetchedPosts, ...filteredSamples]);
       setIsLoading(false);
     }, (error) => {
       console.error("Firestore snapshot error:", error);
@@ -96,6 +113,7 @@ export default function Blog() {
     return () => {
       unsubscribeAuth();
       unsubscribePosts();
+      if (unsubUserDoc) unsubUserDoc();
     };
   }, []);
 
@@ -138,7 +156,7 @@ export default function Blog() {
       setIsContentImageUploading(true);
       setIsCompressing(true);
       try {
-        const compressedFile = await imageCompression(file, imageCompressionOptions);
+        const compressedFile = await compressImage(file);
         setIsCompressing(false);
         const storageRef = ref(storage, `blog_content/${Date.now()}_${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, compressedFile);
@@ -172,35 +190,11 @@ export default function Blog() {
     }
   };
 
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!subscribeEmail || isSubscribing) return;
 
-    setIsSubscribing(true);
-    try {
-      const response = await fetch("/api/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: subscribeEmail })
-      });
-
-      if (response.ok) {
-        setShowSuccessModal(true);
-        setSubscribeEmail("");
-      } else {
-        alert("구독 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-      }
-    } catch (error) {
-      console.error("Subscription error:", error);
-      alert("네트워크 오류가 발생했습니다.");
-    } finally {
-      setIsSubscribing(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAdmin || !user) return;
+    if (!(isAdmin || canPostBlog) || !user) return;
 
     setIsUploading(true);
     try {
@@ -208,7 +202,7 @@ export default function Blog() {
 
       if (selectedFile) {
         setIsCompressing(true);
-        const compressedFile = await imageCompression(selectedFile, imageCompressionOptions);
+        const compressedFile = await compressImage(selectedFile);
         setIsCompressing(false);
         const storageRef = ref(storage, `blog/${Date.now()}_${selectedFile.name}`);
         const uploadTask = uploadBytesResumable(storageRef, compressedFile);
@@ -261,7 +255,7 @@ export default function Blog() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!isAdmin) return;
+    if (!(isAdmin || canPostBlog)) return;
     if (window.confirm("Are you sure you want to delete this post?")) {
       try {
         await deleteDoc(doc(db, "posts", id));
@@ -271,8 +265,22 @@ export default function Blog() {
     }
   };
 
-  const featuredPost = posts.find(p => p.featured) || posts[0];
-  const regularPosts = posts.filter(p => p.id !== featuredPost?.id);
+  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+
+  const categories = ["ALL", "JOURNEY", "VALUES", "TIPS", "STORY", "CULTURE"];
+
+  // Filter posts by selectedCategory if it's not "ALL"
+  const filteredPosts = selectedCategory === "ALL" 
+    ? posts 
+    : posts.filter(p => (p.category || "").toUpperCase() === selectedCategory.toUpperCase());
+
+  // Determine featured post (first featured post in general, or fallback to first filtered post)
+  const featuredPost = selectedCategory === "ALL" 
+    ? (posts.find(p => p.featured) || posts[0])
+    : (filteredPosts.find(p => p.featured) || filteredPosts[0]);
+
+  // Regular posts are those in filteredPosts excluding the active featured post
+  const regularPosts = filteredPosts.filter(p => p.id !== featuredPost?.id);
 
   if (isLoading) {
     return (
@@ -300,7 +308,7 @@ export default function Blog() {
                 MEMOIR OF <span className="italic text-accent-pink/80 font-light">'첫올'</span>
               </h1>
               <div className="mt-6 flex items-center gap-4">
-                {isAdmin ? (
+                {(isAdmin || canPostBlog) ? (
                   <>
                     <button 
                       onClick={() => handleOpenModal()}
@@ -308,14 +316,12 @@ export default function Blog() {
                     >
                       <Plus className="w-4 h-4" /> Add Post
                     </button>
-                    {posts.length === 0 && (
-                      <button 
-                        onClick={handleRestore}
-                        className="flex items-center gap-2 px-6 py-3 bg-accent-pink text-gray-900 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all shadow-lg"
-                      >
-                        Restore Initial Posts
-                      </button>
-                    )}
+                    <button 
+                      onClick={handleRestore}
+                      className="flex items-center gap-2 px-6 py-3 bg-[#eae8e4] text-gray-800 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-accent-pink hover:text-gray-900 transition-all shadow-md"
+                    >
+                      Restore Initial Posts
+                    </button>
                     <button 
                       onClick={logout}
                       className="flex items-center gap-2 px-6 py-3 border border-gray-200 text-gray-600 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-all"
@@ -341,6 +347,35 @@ export default function Blog() {
             </div>
           </motion.div>
         </header>
+
+        {/* Category Filter Tabs */}
+        <div className="mb-20">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-gray-200/60 pb-4 gap-4 overflow-x-auto no-scrollbar scroll-smooth">
+            <div className="flex gap-2 sm:gap-4 flex-nowrap overflow-x-auto no-scrollbar scroll-smooth">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-5 py-2.5 rounded-full font-sans font-bold text-xs uppercase tracking-widest transition-all whitespace-nowrap ${
+                    selectedCategory === cat
+                      ? "bg-gray-900 text-white shadow-md shadow-gray-900/10"
+                      : "bg-[#F3F1ED] text-gray-500 hover:text-gray-900 hover:bg-[#eae8e4]"
+                  }`}
+                >
+                  {cat === "ALL" ? "전체 포스팅 (ALL)" : cat}
+                </button>
+              ))}
+            </div>
+            {selectedCategory !== "ALL" && (
+              <button
+                onClick={() => setSelectedCategory("ALL")}
+                className="flex-shrink-0 text-xs font-sans font-bold text-accent-pink uppercase tracking-widest hover:underline transition-all flex items-center gap-1 self-end sm:self-center"
+              >
+                전체보기로 돌아가기 &rarr;
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Featured Post */}
         {featuredPost && (
@@ -381,7 +416,7 @@ export default function Blog() {
                   <div className="flex items-center gap-2 text-xs font-sans font-bold uppercase tracking-widest text-gray-900 group-hover:gap-4 transition-all">
                     Read Full Story <ArrowRight className="w-4 h-4" />
                   </div>
-                  {isAdmin && (
+                  {(isAdmin || canPostBlog) && (
                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <button 
                         onClick={() => handleOpenModal(featuredPost)}
@@ -440,7 +475,7 @@ export default function Blog() {
                 <p className="text-gray-500 font-sans font-light text-sm leading-relaxed line-clamp-2">
                   {post.desc}
                 </p>
-                {isAdmin && (
+                {(isAdmin || canPostBlog) && (
                   <div className="pt-4 flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <button 
                       onClick={() => handleOpenModal(post)}
@@ -668,78 +703,7 @@ export default function Blog() {
           )}
         </AnimatePresence>
 
-        {/* Newsletter / CTA */}
-        <section className="mt-48 py-24 border-t border-gray-200 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mx-auto space-y-8"
-          >
-            <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 leading-relaxed">
-              진심이 담긴 이야기를 <br />
-              <span className="italic text-accent-pink/80">매주 받아보세요.</span>
-            </h2>
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 justify-center">
-              <input 
-                type="email" 
-                required
-                value={subscribeEmail}
-                onChange={(e) => setSubscribeEmail(e.target.value)}
-                placeholder="Email address"
-                className="px-8 py-4 rounded-full bg-white border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent-pink/30 font-sans text-sm w-full sm:w-80"
-              />
-              <button 
-                type="submit"
-                disabled={isSubscribing}
-                className="px-10 py-4 rounded-full bg-gray-900 text-white font-sans font-bold uppercase tracking-widest text-xs hover:bg-accent-pink hover:text-gray-900 transition-all disabled:opacity-50"
-              >
-                {isSubscribing ? "Subscribing..." : "Subscribe"}
-              </button>
-            </form>
-            <p className="text-[10px] text-gray-400 font-sans uppercase tracking-widest">
-              We respect your privacy. Unsubscribe at any time.
-            </p>
-          </motion.div>
-        </section>
 
-        {/* Success Modal */}
-        <AnimatePresence>
-          {showSuccessModal && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowSuccessModal(false)}
-                className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
-              />
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-sm bg-white rounded-[32px] p-12 text-center shadow-2xl"
-              >
-                <div className="flex justify-center mb-6">
-                  <div className="w-20 h-20 bg-accent-pink/10 rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10 text-accent-pink" />
-                  </div>
-                </div>
-                <h3 className="text-2xl font-serif font-bold text-gray-900 mb-4">신청되었습니다</h3>
-                <p className="text-sm font-sans text-gray-500 leading-relaxed mb-8">
-                  진심이 담긴 이야기를 매주 보내드릴게요.<br />
-                  구독해주셔서 감사합니다.
-                </p>
-                <button 
-                  onClick={() => setShowSuccessModal(false)}
-                  className="w-full py-4 bg-gray-900 text-white rounded-2xl font-sans font-bold uppercase tracking-widest text-xs hover:bg-accent-pink hover:text-gray-900 transition-all"
-                >
-                  확인
-                </button>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

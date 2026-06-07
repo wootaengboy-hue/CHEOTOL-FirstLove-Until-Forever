@@ -1,6 +1,9 @@
 import { motion } from "motion/react";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Lock, ShieldAlert } from "lucide-react";
 import { Link } from "react-router-dom";
+import { auth } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { useEffect, useState } from "react";
 
 const PACKAGES = [
   {
@@ -47,6 +50,77 @@ const EXPECTATIONS = [
 ];
 
 export default function UzbekistanService() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setIsAdmin(u ? u.email === "wootaengboy@gmail.com" : false);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-warm-beige/30 flex items-center justify-center">
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="w-12 h-12 rounded-full border-2 border-accent-pink border-t-transparent animate-spin" />
+          <span className="text-xs font-sans font-bold tracking-widest text-accent-pink uppercase">Loading secure contents...</span>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-warm-beige/20 pt-32 pb-24 px-6 md:px-[5%] flex items-center justify-center relative">
+        <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-accent-pink/5 blur-[120px] rounded-full -z-10" />
+        <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-accent-pink/5 blur-[100px] rounded-full -z-10" />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-2xl w-full bg-white/60 backdrop-blur-md border border-white shadow-xl rounded-[3rem] p-12 md:p-16 text-center"
+        >
+          <div className="w-20 h-20 bg-accent-pink/5 border border-accent-pink/10 rounded-3xl flex items-center justify-center text-accent-pink mx-auto mb-8 animate-pulse">
+            <Lock className="w-10 h-10" />
+          </div>
+          <span className="text-xs font-sans font-bold text-accent-pink uppercase tracking-[0.4em] mb-4 block">
+            Access Restricted
+          </span>
+          <h2 className="text-3xl md:text-5xl font-serif mb-6 leading-tight text-gray-900 break-keep">
+            우즈베키스탄 매칭 서비스 <br/>
+            <span className="text-gray-500 italic">조회 제한 안내</span>
+          </h2>
+          <p className="text-gray-500 font-sans font-light leading-relaxed max-w-md mx-auto mb-12 break-keep text-sm md:text-base">
+            우즈베키스탄 서비스는 현재 관리자(Admin) 계정 전용으로 활성화되어 일반 사용자의 접근이 제한되어 있습니다. 궁금한 점이 있으시다면 실시간 상담을 이용하시거나 일본 매칭 서비스를 둘러보세요.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link 
+              to="/services/japan"
+              className="bg-black text-white px-8 py-4 rounded-full font-sans font-bold uppercase tracking-widest text-xs hover:scale-105 transition-transform shadow-lg shadow-black/10 inline-flex items-center justify-center gap-2"
+            >
+              일본 서비스 보기 <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link 
+              to="/"
+              className="bg-white text-gray-900 border border-gray-100 px-8 py-4 rounded-full font-sans font-bold uppercase tracking-widest text-xs hover:bg-gray-50 transition-all shadow-sm"
+            >
+              홈으로 가기
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-24 pb-24 px-6 md:px-[5%] max-w-7xl mx-auto min-h-screen">
       {/* Hero Section */}

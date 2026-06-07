@@ -1,6 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Global Safety Net default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
     // ===============================================================
     // Helper Functions
     // ===============================================================
@@ -10,8 +15,25 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
-        request.auth.token.email == "wootaengboy@gmail.com" && 
-        request.auth.token.email_verified == true
+        request.auth.token.email == "wootaengboy@gmail.com" ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true)
+      );
+    }
+
+    function canPostBlog() {
+      return isAdmin() || (
+        isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.canPostBlog == true
+      );
+    }
+
+    function canPostPortfolio() {
+      return isAdmin() || (
+        isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.canPostPortfolio == true
       );
     }
 
@@ -37,31 +59,69 @@ service cloud.firestore {
              data.authorUid is string && data.authorUid == request.auth.uid;
     }
 
+    function isValidUserCreate(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'createdAt']) &&
+             data.uid == userId &&
+             data.email == request.auth.token.email &&
+             (!data.keys().hasAny(['isAdmin', 'canPostBlog', 'canPostPortfolio']) || 
+              (data.get('isAdmin', false) == false && data.get('canPostBlog', false) == false && data.get('canPostPortfolio', false) == false));
+    }
+
     // ===============================================================
     // Collection Rules
     // ===============================================================
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == userId && isValidUserCreate(request.resource.data, userId);
+      allow update: if isAuthenticated() && (
+        isAdmin() || (
+          request.auth.uid == userId && 
+          request.resource.data.get('isAdmin', false) == resource.data.get('isAdmin', false) &&
+          request.resource.data.get('canPostBlog', false) == resource.data.get('canPostBlog', false) &&
+          request.resource.data.get('canPostPortfolio', false) == resource.data.get('canPostPortfolio', false)
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
     match /posts/{postId} {
       // Anyone can read blog posts
       allow read: if true;
       
-      // Only admin can create, update, or delete posts
-      allow create: if isAdmin() && isValidPost(request.resource.data);
-      allow update: if isAdmin() && isValidPost(request.resource.data) && 
+      // Admin or allowed employees can create, update, or delete posts
+      allow create: if (isAdmin() || canPostBlog()) && isValidPost(request.resource.data);
+      allow update: if (isAdmin() || canPostBlog()) && isValidPost(request.resource.data) && 
                       request.resource.data.authorUid == resource.data.authorUid &&
                       request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (canPostBlog() && resource.data.authorUid == request.auth.uid);
     }
 
     match /portfolio/{portfolioId} {
       // Anyone can read portfolio items
       allow read: if true;
       
-      // Only admin can create, update, or delete portfolio items
-      allow create: if isAdmin() && isValidPortfolio(request.resource.data);
-      allow update: if isAdmin() && isValidPortfolio(request.resource.data) && 
+      // Admin or allowed employees can create, update, or delete portfolio items
+      allow create: if (isAdmin() || canPostPortfolio()) && isValidPortfolio(request.resource.data);
+      allow update: if (isAdmin() || canPostPortfolio()) && isValidPortfolio(request.resource.data) && 
                       request.resource.data.authorUid == resource.data.authorUid &&
                       request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (canPostPortfolio() && resource.data.authorUid == request.auth.uid);
+    }
+
+    match /consultations/{consultationId} {
+      // Anyone can submit a consultation request
+      allow create: if true;
+      
+      // Only admin can read, update, or delete consultations
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /settings/{settingsId} {
+      // Anyone can read app settings (e.g. Kakao chat link)
+      allow read: if true;
+      
+      // Only admin can modify settings
+      allow write: if isAdmin();
     }
   }
 }
