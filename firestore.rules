@@ -62,11 +62,14 @@ service cloud.firestore {
     function isValidUserCreate(data, userId) {
       return data.keys().hasAll(['uid', 'email', 'displayName', 'createdAt']) &&
              data.uid == userId &&
-             data.email == request.auth.token.email &&
+             data.email is string &&
              (
                request.auth.token.email == "wootaengboy@gmail.com" ||
-               !data.keys().hasAny(['isAdmin', 'canPostBlog', 'canPostPortfolio']) || 
-               (data.get('isAdmin', false) == false && data.get('canPostBlog', false) == false && data.get('canPostPortfolio', false) == false)
+               (
+                 (!('isAdmin' in data) || data.isAdmin == false) &&
+                 (!('canPostBlog' in data) || data.canPostBlog == false) &&
+                 (!('canPostPortfolio' in data) || data.canPostPortfolio == false)
+               )
              );
     }
 

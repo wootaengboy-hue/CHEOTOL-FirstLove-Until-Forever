@@ -513,8 +513,8 @@ export default function Home() {
               <span className="text-xs font-sans font-bold text-accent-pink uppercase tracking-[0.3em] mb-4 block">
                 Our Portfolio
               </span>
-              <h2 className="text-4xl md:text-6xl font-serif font-black text-gray-900 leading-tight tracking-tighter">
-                MOMENTS OF <span className="italic text-accent-pink/80 font-light">'인연'</span>
+              <h2 className="text-3xl sm:text-4xl md:text-6xl font-serif font-black text-gray-900 leading-tight tracking-tighter break-keep">
+                MOMENTS OF <span className="italic text-accent-pink/80 font-light whitespace-nowrap">'인연'</span>
               </h2>
             </div>
             <button 

@@ -60,9 +60,19 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         }
       }
     } catch (err: any) {
-      console.error(err);
-      if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
-        setError("구글 로그인에 실패했습니다. 다시 시도해 주세요.");
+      console.error("Google sign in error details:", err);
+      if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+        return;
+      }
+      
+      if (err.code === "auth/unauthorized-domain") {
+        setError(`[도메인 미승인] 현재 배포 도메인이 Firebase 콘솔에 허용 등록되지 않았습니다. Firebase 콘솔(Authentication -> Settings -> Authorized domains)에 현재 도메인을 추가해주세요.`);
+      } else if (err.code === "auth/popup-blocked") {
+        setError("[팝업 차단됨] 브라우저에서 팝업창이 차단되었습니다. 주소창 우측에서 팝업 허용을 활성화하고 다시 시도하시거나, 반드시 새 창/실제 주소로 직접 접속했는지 확인해 주세요.");
+      } else if (err.code === "auth/operation-not-allowed") {
+        setError("[제공업체 비활성화] Firebase 콘솔에서 Google 이메일 로그인 공급업체가 활성화되어 있지 않습니다.");
+      } else {
+        setError(`구글 로그인 실패: ${err.message || "오류가 발생했습니다."} (에러 코드: ${err.code || "unknown"})`);
       }
     } finally {
       setLoading(false);
@@ -102,7 +112,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         // Register user
         const result = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(result.user, { displayName });
-        await syncUserProfile(result.user);
+        await syncUserProfile(result.user, displayName);
         userObj = result.user;
       } else {
         // Log in user
