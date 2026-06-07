@@ -32,6 +32,7 @@ export default function AdminDashboard() {
   const [usersList, setUsersList] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"consultations" | "users">("consultations");
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [showGooglePrompt, setShowGooglePrompt] = useState(false);
 
   const [kakaoLink, setKakaoLink] = useState("");
   const [isSavingKakao, setIsSavingKakao] = useState(false);
@@ -301,6 +302,14 @@ export default function AdminDashboard() {
       const res = await fetch("/api/auth/google/status");
       const data = await res.json();
       setIsConnected(data.connected);
+      
+      // If not connected, and not already dismissed in this session, show prompt
+      if (!data.connected) {
+        const dismissed = sessionStorage.getItem("google_prompt_dismissed");
+        if (dismissed !== "true") {
+          setShowGooglePrompt(true);
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -426,6 +435,51 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-32 pb-20 px-6 md:px-[5%]">
+      {/* Modern Google Calendar Connect Prompt Modal */}
+      {showGooglePrompt && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm"
+        >
+          <div className="w-full max-w-md bg-white p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 flex flex-col items-center text-center">
+            <div className="w-14 h-14 bg-accent-pink/10 rounded-2xl flex items-center justify-center text-accent-pink mb-6 border border-accent-pink/5">
+              <Calendar className="w-7 h-7" />
+            </div>
+            <h2 className="text-2xl font-serif font-black text-gray-900 mb-2">구글 캘린더 연동 안내</h2>
+            <p className="text-[10px] text-accent-pink font-extrabold uppercase tracking-widest font-sans mb-4">
+              Google Calendar Sync Recommended
+            </p>
+            <p className="text-sm text-gray-500 leading-relaxed mb-8 break-keep">
+              현재 첫올 계정에 구글 캘린더가 예약 연동되어 있지 않습니다.<br />
+              고객이 실시간으로 예약 및 상담을 신청할 때 임직원의 구글 캘린더 일정이 자동으로 동기화되도록 지금 계정을 연동하시겠습니까?
+            </p>
+            <div className="flex w-full gap-3">
+              <button 
+                onClick={() => {
+                  setShowGooglePrompt(false);
+                  sessionStorage.setItem("google_prompt_dismissed", "true");
+                }}
+                className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-sans font-bold text-xs transition-transform hover:scale-[1.01] cursor-pointer"
+              >
+                나중에 하기
+              </button>
+              <button 
+                onClick={async () => {
+                  setShowGooglePrompt(false);
+                  sessionStorage.setItem("google_prompt_dismissed", "true");
+                  await handleConnect();
+                }}
+                className="flex-1 py-3.5 bg-accent-pink text-gray-900 rounded-xl font-sans font-bold uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-accent-pink/20 cursor-pointer"
+              >
+                지금 연동하기
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <div className="max-w-7xl mx-auto">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div>
