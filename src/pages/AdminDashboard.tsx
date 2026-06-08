@@ -110,11 +110,11 @@ export default function AdminDashboard() {
     const expired = token && expiresStr && Date.now() > parseInt(expiresStr);
     if (!token || expired) return;
 
-    // Find consultations that have a date, time, are not canceled, and do not have a calendarEventId
+    // Find consultations that have a date, time, are not canceled, and do not have a calendarEventId (and not intentionally un-synced)
     const unsynced = consultations.filter((c: any) => 
       c.date && 
       c.time && 
-      !c.calendarEventId && 
+      (!c.calendarEventId || c.calendarEventId === "") && 
       c.status !== "CANCEL"
     );
 
@@ -214,14 +214,14 @@ export default function AdminDashboard() {
       const docRef = doc(db, "consultations", id);
 
       const target = consultations.find(c => c.id === id);
-      if (nextStatus === "CANCEL" && target && target.calendarEventId) {
+      if (nextStatus === "CANCEL" && target && target.calendarEventId && target.calendarEventId !== "none") {
         const confirmCancel = confirm("상태를 CANCEL로 변경하면 구글 캘린더에 연동된 일정이 자동으로 삭제됩니다. 계속하시겠습니까?");
         if (!confirmCancel) return;
 
         await deleteFromGoogleCalendar(target);
         await updateDoc(docRef, { 
           status: nextStatus,
-          calendarEventId: null
+          calendarEventId: "none"
         });
       } else {
         await updateDoc(docRef, { status: nextStatus });
@@ -234,14 +234,14 @@ export default function AdminDashboard() {
   const handleDeleteConsultation = async (id: string) => {
     const target = consultations.find(c => c.id === id);
     let confirmMsg = "정말 이 상담 신청 내역을 삭제하시겠습니까?";
-    if (target && target.calendarEventId) {
+    if (target && target.calendarEventId && target.calendarEventId !== "none") {
       confirmMsg = "정말 이 상담 신청 내역을 삭제하시겠습니까?\n(구글 캘린더에 연동된 일정도 함께 즉시 삭제됩니다.)";
     }
     
     if (!confirm(confirmMsg)) return;
 
     try {
-      if (target && target.calendarEventId) {
+      if (target && target.calendarEventId && target.calendarEventId !== "none") {
         await deleteFromGoogleCalendar(target);
       }
 
@@ -449,7 +449,7 @@ export default function AdminDashboard() {
 
   const deleteFromGoogleCalendar = async (consultation: any) => {
     const calendarEventId = consultation.calendarEventId;
-    if (!calendarEventId) return;
+    if (!calendarEventId || calendarEventId === "none") return;
 
     const token = localStorage.getItem("google_calendar_token");
     if (!token) {
@@ -477,7 +477,7 @@ export default function AdminDashboard() {
 
       // Update in Firestore
       const docRef = doc(db, "consultations", consultation.id);
-      await updateDoc(docRef, { calendarEventId: null });
+      await updateDoc(docRef, { calendarEventId: "none" });
     } catch (err: any) {
       console.error("Calendar deletion error:", err);
       alert(`구글 캘린더 일정 삭제 중 오류:\n${err.message || err}`);
@@ -1027,7 +1027,7 @@ export default function AdminDashboard() {
                               <div className="flex flex-col gap-1.5">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="font-bold text-gray-800">{c.date}</span>
-                                  {c.calendarEventId ? (
+                                  {c.calendarEventId && c.calendarEventId !== "none" ? (
                                     <div className="flex items-center gap-1">
                                       <span className="inline-flex items-center text-[10px] text-green-600 font-sans font-semibold bg-green-50 border border-green-200/50 rounded px-1.5 py-0.5">
                                         <Calendar className="w-3 h-3 mr-0.5" /> 연동됨
