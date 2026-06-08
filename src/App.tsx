@@ -1,6 +1,7 @@
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import ScrollToTop from "./components/ScrollToTop";
+import InAppBrowserWarning from "./components/InAppBrowserWarning";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -17,7 +18,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 export default function App() {
   return (
     <Router>
-      <div className="min-h-screen selection:bg-accent-pink/50 bg-warm-beige/30">
+      <div className="min-h-screen selection:bg-accent-pink/50 bg-warm-beige/30 pt-0">
+        <InAppBrowserWarning />
         <ScrollToTop />
         <Navbar />
         <Routes>

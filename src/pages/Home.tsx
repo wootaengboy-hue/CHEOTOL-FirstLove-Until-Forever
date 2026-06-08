@@ -244,14 +244,20 @@ export default function Home() {
 
   useEffect(() => {
     if (activeStep !== null) {
-      const element = document.getElementById("journey-timeline");
-      if (element) {
-        const offsetTop = element.getBoundingClientRect().top + window.pageYOffset - 90;
-        window.scrollTo({
-          top: offsetTop,
-          behavior: "smooth"
-        });
-      }
+      // Use setTimeout to allow DOM layout to stabilize during navigation transitions
+      const timer = setTimeout(() => {
+        const element = document.getElementById("journey-timeline");
+        if (element) {
+          // Adjust scroll offset to position "Back to Journey" higher and in full view below the navbar
+          const offsetTop = element.getBoundingClientRect().top + window.pageYOffset - 140;
+          window.scrollTo({
+            top: offsetTop,
+            behavior: "smooth"
+          });
+        }
+      }, 150);
+      
+      return () => clearTimeout(timer);
     }
   }, [activeStep]);
 
