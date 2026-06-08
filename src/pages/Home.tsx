@@ -13,6 +13,7 @@ import { useGoogleFormLink } from "../components/useGoogleFormLink";
 
 const logo1 = new URL("../assets/logo1.png", import.meta.url).href;
 const logo2 = new URL("../assets/logo2.png", import.meta.url).href;
+const logo3 = new URL("../assets/logo3.png", import.meta.url).href;
 const homeMainImage = new URL("../assets/home_main.png", import.meta.url).href;
 
 const STEPS = [
@@ -306,7 +307,7 @@ export default function Home() {
           >
             <div className="relative flex items-center justify-center w-24 h-24 md:w-32 md:h-32 bg-white/40 backdrop-blur-md rounded-full shadow-2xl border border-white/50">
               <img 
-                src={logo2} 
+                src={logo3} 
                 alt="CHEOTOL Badge Logo" 
                 className="w-14 h-14 md:w-20 md:h-20 object-contain transition-transform duration-300 hover:scale-[1.05]"
                 referrerPolicy="no-referrer"
