@@ -294,27 +294,27 @@ export default function Portfolio() {
         </p>
 
         {/* Admin Controls */}
-        <div className="mt-12 flex justify-center gap-4">
+        <div className="mt-12 flex flex-wrap justify-center gap-3 sm:gap-4">
           {!user ? (
             <button 
               onClick={handleLogin}
-              className="flex items-center gap-2 px-6 py-3 bg-gray-100 rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:bg-gray-200 transition-colors"
+              className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-100 rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:bg-gray-200 transition-colors"
             >
               <LogIn className="w-4 h-4" /> Admin Login
             </button>
           ) : (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
               {(isAdmin || canPostPortfolio) && (
                 <>
                   <button 
                     onClick={() => { resetForm(); setIsModalOpen(true); }}
-                    className="flex items-center gap-2 px-6 py-3 bg-accent-pink text-white rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:bg-accent-pink/90 transition-colors"
+                    className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-accent-pink text-white rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:bg-accent-pink/90 transition-colors"
                   >
                     <Plus className="w-4 h-4" /> Add Item
                   </button>
                   <button 
                     onClick={handleRestore}
-                    className="flex items-center gap-2 px-6 py-3 bg-gray-800 text-white rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors"
+                    className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-800 text-white rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:bg-gray-900 transition-colors"
                   >
                     Restore Samples
                   </button>
@@ -322,7 +322,7 @@ export default function Portfolio() {
               )}
               <button 
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-6 py-3 bg-gray-100 rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-100 rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:bg-gray-200 transition-colors"
               >
                 <LogOut className="w-4 h-4" /> Logout
               </button>
@@ -353,14 +353,14 @@ export default function Portfolio() {
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
-                <span className="text-[10px] font-sans font-bold text-accent-pink uppercase tracking-widest mb-2">{item.category}</span>
-                <h3 className="text-xl font-serif text-white mb-2">{item.title}</h3>
-                <p className="text-xs text-gray-300 font-sans font-light line-clamp-2">{item.desc}</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6 md:p-8">
+                <span className="text-[10px] font-sans font-bold text-accent-pink uppercase tracking-widest mb-1.5 md:mb-2">{item.category}</span>
+                <h3 className="text-lg md:text-xl font-serif text-white mb-1.5 md:mb-2 leading-snug">{item.title}</h3>
+                <p className="text-xs text-gray-200 md:text-gray-300 font-sans font-light line-clamp-2 leading-relaxed">{item.desc}</p>
               </div>
 
               {(isAdmin || canPostPortfolio) && (
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-4 right-4 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={(e) => openEditModal(item, e)}
                     className="p-2 bg-white/90 rounded-full text-gray-900 hover:bg-white transition-colors"

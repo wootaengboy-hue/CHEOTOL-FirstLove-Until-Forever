@@ -862,7 +862,7 @@ export default function AdminDashboard() {
                       <FileText className="w-6 h-6" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-serif font-bold text-gray-950">구글 설문지 연동 설정</h2>
+                      <h2 className="text-lg sm:text-xl font-serif font-bold text-gray-950 whitespace-nowrap">구글 폼 연동 설정</h2>
                       <p className="text-[10px] text-gray-400 uppercase tracking-widest font-mono">Google Form Integration</p>
                     </div>
                   </div>
@@ -963,17 +963,21 @@ export default function AdminDashboard() {
                     상담 신청 목록 <span className="text-sm font-sans font-normal text-gray-400">({consultations.length}건)</span>
                   </h2>
                 </div>
-                <div className="flex gap-2">
-                  <span className="px-3 py-1 bg-red-50 text-red-600 text-[10px] font-bold rounded-full uppercase tracking-widest font-sans">
+                <div className="w-full sm:w-auto bg-white border border-gray-100/90 p-2 sm:p-2.5 rounded-2xl shadow-xs grid grid-cols-2 sm:flex gap-2">
+                  <span className="inline-flex items-center justify-center px-3 py-2.5 sm:py-1 bg-red-50 text-red-600 text-xs sm:text-[10px] font-extrabold rounded-xl uppercase tracking-wider font-sans whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
                     New
                   </span>
-                  <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full uppercase tracking-widest font-sans">
+                  <span className="inline-flex items-center justify-center px-3 py-2.5 sm:py-1 bg-blue-50 text-blue-600 text-xs sm:text-[10px] font-extrabold rounded-xl uppercase tracking-wider font-sans whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-1.5"></span>
                     Contacted
                   </span>
-                  <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-bold rounded-full uppercase tracking-widest font-sans">
+                  <span className="inline-flex items-center justify-center px-3 py-2.5 sm:py-1 bg-green-50 text-green-600 text-xs sm:text-[10px] font-extrabold rounded-xl uppercase tracking-wider font-sans whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
                     Completed
                   </span>
-                  <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-bold rounded-full uppercase tracking-widest font-sans">
+                  <span className="inline-flex items-center justify-center px-3 py-2.5 sm:py-1 bg-gray-100 text-gray-500 text-xs sm:text-[10px] font-extrabold rounded-xl uppercase tracking-wider font-sans whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-1.5"></span>
                     Cancel
                   </span>
                 </div>

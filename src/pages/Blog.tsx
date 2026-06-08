@@ -304,27 +304,27 @@ export default function Blog() {
               <span className="text-xs font-sans font-bold text-accent-pink uppercase tracking-[0.3em] mb-4 block">
                 Journal & Stories
               </span>
-              <h1 className="text-4xl md:text-6xl font-serif font-black text-gray-900 leading-tight tracking-tighter whitespace-nowrap">
+              <h1 className="text-4xl md:text-6xl font-serif font-black text-gray-900 leading-tight tracking-tighter sm:whitespace-nowrap">
                 MEMOIR OF <span className="italic text-accent-pink/80 font-light">'첫올'</span>
               </h1>
-              <div className="mt-6 flex items-center gap-4">
+              <div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4">
                 {(isAdmin || canPostBlog) ? (
                   <>
                     <button 
                       onClick={() => handleOpenModal()}
-                      className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-accent-pink hover:text-gray-900 transition-all shadow-lg"
+                      className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-900 text-white rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-accent-pink hover:text-gray-900 transition-all shadow-lg"
                     >
                       <Plus className="w-4 h-4" /> Add Post
                     </button>
                     <button 
                       onClick={handleRestore}
-                      className="flex items-center gap-2 px-6 py-3 bg-[#eae8e4] text-gray-800 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-accent-pink hover:text-gray-900 transition-all shadow-md"
+                      className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#eae8e4] text-gray-800 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-accent-pink hover:text-gray-900 transition-all shadow-md"
                     >
                       Restore Initial Posts
                     </button>
                     <button 
                       onClick={logout}
-                      className="flex items-center gap-2 px-6 py-3 border border-gray-200 text-gray-600 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-all"
+                      className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-200 text-gray-600 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-all"
                     >
                       <LogOut className="w-4 h-4" /> Logout
                     </button>
@@ -332,7 +332,7 @@ export default function Blog() {
                 ) : (
                   <button 
                     onClick={signInWithGoogle}
-                    className="flex items-center gap-2 px-6 py-3 border border-gray-200 text-gray-600 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-all"
+                    className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-200 text-gray-600 rounded-full font-sans font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-all"
                   >
                     <LogIn className="w-4 h-4" /> Admin Login
                   </button>

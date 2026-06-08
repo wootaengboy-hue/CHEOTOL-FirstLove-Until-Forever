@@ -242,6 +242,19 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (activeStep !== null) {
+      const element = document.getElementById("journey-timeline");
+      if (element) {
+        const offsetTop = element.getBoundingClientRect().top + window.pageYOffset - 90;
+        window.scrollTo({
+          top: offsetTop,
+          behavior: "smooth"
+        });
+      }
+    }
+  }, [activeStep]);
+
   return (
     <div className="min-h-screen selection:bg-accent-pink/50">
       {/* Hero Section */}
@@ -283,7 +296,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.0, ease: "easeOut" }}
-            className="text-lg md:text-xl mb-4 text-gray-600 tracking-widest font-sans font-bold uppercase break-keep"
+            className="text-base xs:text-lg sm:text-xl md:text-2xl mb-4 text-gray-600 tracking-wider md:tracking-widest font-sans font-bold uppercase whitespace-nowrap"
           >
             CHEOTOL, 국제결혼의 <span className="bg-gradient-to-r from-accent-pink to-[#FF80B5] bg-clip-text text-transparent">새로운 기준</span>
           </motion.h3>
@@ -329,7 +342,7 @@ export default function Home() {
       </section>
 
       {/* Journey Timeline Section */}
-      <section className="relative py-32 overflow-hidden">
+      <section id="journey-timeline" className="relative py-32 overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <img 

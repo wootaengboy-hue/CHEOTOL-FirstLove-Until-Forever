@@ -504,23 +504,23 @@ export default function Services() {
             당신만의 특별한 인연을 찾는 여정,<br />지금 바로 시작하세요.<br />
             전문 매니저가 당신의 모든 과정을 함께합니다.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link 
               to="/contact"
-              className="bg-black text-white px-12 py-5 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-black/20"
+              className="w-full sm:w-auto text-center bg-black text-white px-6 sm:px-12 py-4 sm:py-5 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-black/20 whitespace-nowrap"
             >
               상담 신청하기
             </Link>
             <button 
               onClick={openKakaoChat}
-              className="bg-[#FAE100] text-[#3C1E1E] px-12 py-5 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-[#FAE100]/20 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-[#FAE100] text-[#3C1E1E] px-6 sm:px-12 py-4 sm:py-5 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-[#FAE100]/20 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
             >
-              <MessageCircle className="w-5 h-5" />
+              <MessageCircle className="w-5 h-5 shrink-0" />
               실시간 상담
             </button>
             <Link 
               to={activeTab === "japan" ? "/services/japan" : "/services/uzbekistan"}
-              className="bg-white text-gray-900 border border-gray-200 px-12 py-5 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:bg-gray-50 transition-all"
+              className="w-full sm:w-auto text-center bg-white text-gray-900 border border-gray-200 px-6 sm:px-12 py-4 sm:py-5 rounded-full font-sans font-bold uppercase tracking-widest text-sm hover:bg-gray-50 transition-all whitespace-nowrap"
             >
               패키지 확인하기
             </Link>

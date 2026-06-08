@@ -43,8 +43,8 @@ export default function About() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent-pink/5 rounded-full blur-2xl -mr-8 -mt-8 transition-transform group-hover:scale-110 duration-500" />
             
             <div className="flex items-center gap-2">
-              <span className="text-accent-pink font-serif text-xl animate-pulse">♥</span>
-              <h3 className="font-serif text-lg text-gray-800 font-medium select-none">첫올(CHEOTOL)에 담긴 아름다운 약속</h3>
+              <span className="text-accent-pink font-serif text-xl animate-pulse shrink-0">♥</span>
+              <h3 className="font-serif text-lg text-gray-800 font-medium select-none">첫올(CHEOTOL)에 담긴<br className="block sm:hidden" /> 아름다운 약속</h3>
             </div>
             
             <div className="space-y-4 font-sans font-light text-gray-600 leading-relaxed text-sm break-keep">
