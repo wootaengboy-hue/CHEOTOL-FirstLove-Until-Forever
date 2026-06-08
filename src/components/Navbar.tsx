@@ -120,7 +120,11 @@ export default function Navbar() {
         </div>
 
         {/* Logo */}
-        <Link to="/" className="flex items-center flex-shrink-0">
+        <Link 
+          to="/" 
+          className="flex items-center flex-shrink-0"
+          onClick={() => window.dispatchEvent(new CustomEvent("reset-active-journey-step"))}
+        >
           <img 
             src={logo2} 
             alt="CHEOTOL Logo" 

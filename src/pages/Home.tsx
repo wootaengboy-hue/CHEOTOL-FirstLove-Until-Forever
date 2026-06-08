@@ -243,15 +243,38 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const handleReset = () => {
+      setActiveStep(null);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    window.addEventListener("reset-active-journey-step", handleReset);
+    return () => {
+      window.removeEventListener("reset-active-journey-step", handleReset);
+    };
+  }, []);
+
+  useEffect(() => {
     if (activeStep !== null) {
       // Use setTimeout to allow DOM layout to stabilize during navigation transitions
       const timer = setTimeout(() => {
-        const element = document.getElementById("journey-timeline");
-        if (element) {
-          // Adjust scroll offset to position "Back to Journey" higher and in full view below the navbar
-          const offsetTop = element.getBoundingClientRect().top + window.pageYOffset - 140;
+        const btnElement = document.getElementById("back-to-journey-btn");
+        const timelineElement = document.getElementById("journey-timeline");
+        
+        let targetScrollY = null;
+        if (btnElement) {
+          // Position the "Back to Journey" button perfectly with a clean margin below the header navbar
+          targetScrollY = btnElement.getBoundingClientRect().top + window.pageYOffset - 85;
+        } else if (timelineElement) {
+          // If the button is not yet mounted (due to AnimatePresence exit delay),
+          // calculate its expected position based on the section's top offset.
+          // Section has py-32 (128px) top padding, so the button starts 128px below section top.
+          // Aligned with -85px offset, target is timelineElement.top + 128px - 85px = timelineElement.top + 43px
+          targetScrollY = timelineElement.getBoundingClientRect().top + window.pageYOffset + 43;
+        }
+
+        if (targetScrollY !== null) {
           window.scrollTo({
-            top: offsetTop,
+            top: targetScrollY,
             behavior: "smooth"
           });
         }
@@ -430,6 +453,7 @@ export default function Home() {
               className="w-full"
             >
               <button 
+                id="back-to-journey-btn"
                 onClick={() => setActiveStep(null)}
                 className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors mb-12 group"
               >
@@ -479,16 +503,14 @@ export default function Home() {
                     </motion.button>
 
                     {activeStep === 1 && (
-                      <motion.a
-                        href="https://forms.gle/yAertbNabTBT6f1m8"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <motion.button
+                        onClick={() => navigate("/contact")}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="flex items-center gap-4 bg-accent-pink text-gray-900 px-8 py-4 rounded-full font-sans font-bold uppercase tracking-widest text-sm shadow-lg shadow-accent-pink/20"
                       >
                         상담 신청하기 <ArrowRight className="w-5 h-5" />
-                      </motion.a>
+                      </motion.button>
                     )}
                   </div>
                 </div>
