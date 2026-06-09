@@ -14,7 +14,7 @@ import { useGoogleFormLink } from "../components/useGoogleFormLink";
 const logo1 = new URL("../assets/logo1.png", import.meta.url).href;
 const logo2 = new URL("../assets/logo2.png", import.meta.url).href;
 const logo3 = new URL("../assets/logo3.png", import.meta.url).href;
-const homeMainImage = new URL("../assets/home_main.png", import.meta.url).href;
+const homeMainImage = new URL("../assets/home_main1.png", import.meta.url).href;
 
 const STEPS = [
   { 
