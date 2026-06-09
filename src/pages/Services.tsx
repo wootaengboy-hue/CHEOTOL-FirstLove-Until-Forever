@@ -564,32 +564,33 @@ export default function Services() {
       {/* Registration Workflow Modal */}
       <AnimatePresence>
         {isWorkflowOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+          <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center p-0 md:p-6 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsWorkflowOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-md"
+              className="fixed inset-0 bg-black/60 backdrop-blur-md hidden md:block"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="relative w-full max-w-4xl bg-[#FAF9F5] rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 shadow-2xl overflow-y-auto max-h-[90vh] z-10 border border-gray-100 no-scrollbar"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ type: "spring", damping: 30, stiffness: 350 }}
+              className="relative w-full min-h-screen md:min-h-0 md:max-h-[90vh] md:max-w-4xl bg-[#FAF9F5] rounded-none md:rounded-[3.5rem] p-6 sm:p-10 md:p-16 shadow-2xl overflow-y-auto z-10 border-0 md:border border-gray-100 no-scrollbar pb-10 md:pb-16"
             >
               <button 
                 onClick={() => setIsWorkflowOpen(false)}
-                className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white border border-gray-200/50 flex items-center justify-center hover:bg-gray-50 hover:text-accent-pink shadow-sm transition-all text-gray-400"
+                className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white border border-gray-200/50 flex items-center justify-center hover:bg-gray-50 hover:text-accent-pink shadow-sm transition-all text-gray-400 z-20"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="mb-12 text-left">
-                <span className="text-[10px] font-sans font-bold text-accent-pink uppercase tracking-[0.5em] mb-3 block">
+              <div className="mb-10 text-left pt-6 md:pt-0">
+                <span className="text-[10px] font-sans font-bold text-accent-pink uppercase tracking-[0.5em] mb-2.5 block">
                   REGISTRATION WORKFLOW
                 </span>
-                <h2 className="text-3xl md:text-4xl font-serif tracking-tight leading-snug break-keep text-gray-900">
+                <h2 className="text-2xl md:text-4xl font-serif tracking-tight leading-snug break-keep text-gray-900">
                   계약 및 시스템 등록 <span className="text-accent-pink italic">상세 과정</span>
                 </h2>
                 <p className="text-xs text-gray-500 font-sans mt-2 leading-relaxed max-w-lg">
@@ -598,7 +599,7 @@ export default function Services() {
               </div>
 
               {/* Vertical Timeline implementation */}
-              <div className="relative pl-6 sm:pl-10 border-l-2 border-dashed border-[#E07A5F]/20 space-y-10 py-2">
+              <div className="relative pl-6 sm:pl-10 border-l-2 border-dashed border-[#E07A5F]/20 space-y-8 py-2">
                 {REGISTRATION_WORKFLOW.map((item, idx) => (
                   <motion.div 
                     key={idx}
@@ -612,8 +613,8 @@ export default function Services() {
                       <div className="w-1.5 h-1.5 rounded-full bg-[#E07A5F] group-hover:bg-white transition-colors" />
                     </div>
 
-                    <div className="bg-white border border-[#F2EDE4]/80 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-[0_4px_22px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_32px_-6px_rgba(224,122,95,0.08)] hover:border-accent-pink/30 hover:-translate-y-0.5 transition-all duration-300">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                    <div className="bg-white border border-[#F2EDE4]/80 rounded-2xl md:rounded-3xl p-5 md:p-8 shadow-[0_4px_22px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_32px_-6px_rgba(224,122,95,0.08)] hover:border-accent-pink/30 hover:-translate-y-0.5 transition-all duration-300">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2.5">
                         <span className="text-[10px] sm:text-xs font-sans font-black text-[#E07A5F] tracking-widest uppercase bg-rose-50/50 px-3 py-1 rounded-full border border-rose-100/30 w-fit">
                           STEP 0{idx + 1}
                         </span>
@@ -634,7 +635,7 @@ export default function Services() {
                         </div>
                       )}
 
-                      <p className="mt-3.5 text-xs md:text-sm text-gray-600 font-sans leading-relaxed break-keep">
+                      <p className="mt-3 text-xs md:text-sm text-gray-600 font-sans leading-relaxed break-keep">
                         {item.desc}
                       </p>
                     </div>
@@ -643,16 +644,16 @@ export default function Services() {
               </div>
 
               {/* Verified Badge and Controls */}
-              <div className="mt-16 pt-10 border-t border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-6">
-                <div className="flex items-center gap-3 bg-[#FAF4ED] border border-[#F2EDE4] rounded-2xl sm:rounded-full px-5 py-3 w-full sm:w-auto text-left">
+              <div className="mt-12 pt-8 border-t border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-3 bg-[#FAF4ED] border border-[#F2EDE4] rounded-2xl sm:rounded-full px-4.5 py-3 w-full sm:w-auto text-left">
                   <ShieldCheck className="w-5 h-5 text-accent-pink flex-shrink-0" />
                   <p className="text-[10px] sm:text-xs text-gray-800 font-sans font-bold tracking-wide">
-                    일본결혼연합회 정식 가입사 전체회원수 약 <span className="text-accent-pink text-sm sm:text-base font-extrabold">23만명</span> (24년 기준)
+                    일본결혼연합회 정식 가입사 전체회원수 약 <span className="text-accent-pink text-xs sm:text-sm font-extrabold">23만명</span> (24년 기준)
                   </p>
                 </div>
                 <button 
                   onClick={() => setIsWorkflowOpen(false)}
-                  className="w-full sm:w-auto bg-black text-white hover:bg-accent-pink hover:text-gray-900 transition-colors px-10 py-4.5 rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:scale-102 hover:-translate-y-0.5 transition-all duration-300 shadow-md shadow-black/10 active:scale-98"
+                  className="w-full sm:w-auto bg-black text-white hover:bg-accent-pink hover:text-gray-900 transition-colors px-10 py-4 rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:scale-102 hover:-translate-y-0.5 transition-all duration-300 shadow-md shadow-black/10 active:scale-98"
                 >
                   Close Window
                 </button>
