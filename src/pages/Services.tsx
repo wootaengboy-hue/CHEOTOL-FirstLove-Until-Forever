@@ -280,6 +280,21 @@ export default function Services() {
     }
   }, [isAdmin, activeTab]);
 
+  useEffect(() => {
+    const anyOpen = isWorkflowOpen || isProfileSearchOpen || isMatchNotificationOpen;
+    if (anyOpen) {
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
+  }, [isWorkflowOpen, isProfileSearchOpen, isMatchNotificationOpen]);
+
   return (
     <div className="pt-24 pb-24 px-6 md:px-[5%] max-w-7xl mx-auto min-h-screen relative">
       {/* Background Decorations */}
@@ -564,29 +579,29 @@ export default function Services() {
       {/* Registration Workflow Modal */}
       <AnimatePresence>
         {isWorkflowOpen && (
-          <div className="fixed inset-0 z-[100000] flex items-start md:items-center justify-center p-0 md:p-6 overflow-y-auto">
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center p-0 sm:p-4 md:p-6 overflow-hidden">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsWorkflowOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-md hidden md:block"
+              className="fixed inset-0 bg-black/60 backdrop-blur-md hidden sm:block"
             />
             <motion.div 
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
               transition={{ type: "spring", damping: 30, stiffness: 350 }}
-              className="relative w-full min-h-screen md:min-h-0 md:max-h-[90vh] md:max-w-4xl bg-[#FAF9F5] rounded-none md:rounded-[3.5rem] p-6 pt-14 sm:p-10 md:p-16 shadow-2xl overflow-y-auto z-10 border-0 md:border border-gray-100 no-scrollbar pb-10 md:pb-16"
+              className="relative w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-4xl bg-[#FAF9F5] rounded-none sm:rounded-[2.5rem] md:rounded-[3.5rem] p-5 pt-14 pb-12 sm:p-10 md:p-16 shadow-2xl overflow-y-auto overflow-x-hidden z-10 border-0 sm:border border-gray-100 no-scrollbar"
             >
               <button 
                 onClick={() => setIsWorkflowOpen(false)}
-                className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white border border-gray-200/50 flex items-center justify-center hover:bg-gray-50 hover:text-accent-pink shadow-sm transition-all text-gray-400 z-20"
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-white border border-gray-200/50 flex items-center justify-center hover:bg-gray-50 hover:text-accent-pink shadow-sm transition-all text-gray-400 z-50 animate-fade-in"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="mb-10 text-left pt-4 md:pt-0">
+              <div className="mb-10 text-left pt-6 sm:pt-4 md:pt-0">
                 <span className="text-[10px] font-sans font-bold text-accent-pink uppercase tracking-[0.5em] mb-2.5 block">
                   REGISTRATION WORKFLOW
                 </span>
@@ -599,7 +614,7 @@ export default function Services() {
               </div>
 
               {/* Vertical Timeline implementation */}
-              <div className="relative pl-6 sm:pl-10 border-l-2 border-dashed border-[#E07A5F]/20 space-y-8 py-2">
+              <div className="relative ml-2 sm:ml-4 pl-6 sm:pl-10 border-l-2 border-dashed border-[#E07A5F]/20 space-y-8 py-2">
                 {REGISTRATION_WORKFLOW.map((item, idx) => (
                   <motion.div 
                     key={idx}
