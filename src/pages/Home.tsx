@@ -328,7 +328,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 1.0, ease: "easeOut" }}
             className="text-base xs:text-lg sm:text-xl md:text-2xl mb-4 text-gray-600 tracking-wider md:tracking-widest font-sans font-bold uppercase whitespace-nowrap"
           >
-            CHEOTOL, 국제결혼의 <span className="bg-gradient-to-r from-accent-pink to-[#FF80B5] bg-clip-text text-transparent">새로운 기준</span>
+            CHEOTOL, 국제만남의 <span className="bg-gradient-to-r from-accent-pink to-[#FF80B5] bg-clip-text text-transparent">새로운 기준</span>
           </motion.h3>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
