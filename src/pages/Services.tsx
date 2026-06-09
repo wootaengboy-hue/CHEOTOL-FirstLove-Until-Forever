@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, CheckCircle2, Users, Video, Plane, FileText, Languages, Search, Bell, MessageSquareHeart, UserCheck, ClipboardCheck, X, ChevronRight, MessageCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, Users, Video, Plane, FileText, Languages, Search, Bell, MessageSquareHeart, UserCheck, ClipboardCheck, X, ChevronRight, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -141,13 +141,43 @@ const VIDEO_MEETING_DETAILS = {
 };
 
 const REGISTRATION_WORKFLOW = [
-  { title: "대면상담 & 필수 서류 제출", sub: "(등기로만)" },
-  { title: "계약서 발송" },
-  { title: "계약금 납부" },
-  { title: "모든 서류의 일본어 번역 후 IBJ, TMS에 등록" },
-  { title: "IBJ, TMS 서류심사", sub: "*특이사항이 없는 한 2, 3일 내에 모든 승인 완료" },
-  { title: "신청자에게 IBJ, TMS 사이트 ID, PW 부여" },
-  { title: "IBJ, TMS + 인연애미팅으로 성혼 활동 시작", sub: "*이때부터 계약기간 1년이 산정됨" }
+  {
+    title: "대면상담 & 필수 서류 제출 (등기로만)",
+    desc: "서류의 위변조 방지 및 안전성 검증을 위해 대면 상담 후 필수 학력, 재직, 혼인 관계 서류 등을 반드시 오프라인 등기로 제출받고 있습니다.",
+    badge: "오프라인 필수"
+  },
+  {
+    title: "계약서 발송",
+    desc: "공정거래위원회 표준 약관에 근거한 투명한 성혼 지원 계약서를 정식 발송하며, 상호 일체의 의구 없이 안심하고 진행하실 수 있는 관계를 성립합니다.",
+    badge: "표준 계약"
+  },
+  {
+    title: "계약금 납부",
+    desc: "정식 계약 체결에 따른 가입비 및 기본 등록금 납부 처리가 진행되며, 투명한 영수 및 세액 처리가 신속하게 완료됩니다.",
+    badge: "안전 납부"
+  },
+  {
+    title: "모든 서류의 일본어 번역 후 IBJ, TMS에 등록",
+    desc: "각 분야의 전문 번역가들이 직접 제출된 국문 서류를 전량 일본어로 교차 번역 및 공증하며, 일본 공식 매칭 시스템인 IBJ(일본결혼상담소연합회) 및 TMS 플랫폼에 정식으로 업로드 등록합니다.",
+    badge: "번역 공증"
+  },
+  {
+    title: "IBJ, TMS 서류심사",
+    sub: "(*특이사항이 없는 한 2, 3일 내에 모든 승인 완료)",
+    desc: "일본 측 사법 서류 검토반의 세심한 최종 심사망을 거치며, 기재의 위화감이나 미비 사항이 없을 시 영업일 기준 보통 2~3일 이내에 활동 승인이 완료됩니다.",
+    badge: "안심 승인"
+  },
+  {
+    title: "신청자에게 IBJ, TMS 사이트 ID, PW 부여",
+    desc: "심사가 승인되는 즉시 개인용 계정(ID, PW)이 정식 발급되어 모바일 또는 PC로 일본 거주 및 활동 중인 전체 엘리트 회원의 실시간 상세 프로필에 자유롭게 액세스하실 수 있습니다.",
+    badge: "전용 계정"
+  },
+  {
+    title: "IBJ, TMS + 인연애미팅으로 성혼 활동 시작",
+    sub: "(*이때부터 계약기간 1년이 산정됨)",
+    desc: "공식 시스템 아이디가 생성·부여된 본격적인 해당 일자를 기점으로 1년의 보상 및 활동 기간이 공정하게 시작됩니다. 밀착 상담 서비스와 자체 온오프라인 미팅이 동시에 열립니다.",
+    badge: "성혼 활동"
+  }
 ];
 
 const REAL_MEMBER_DATA = [
@@ -534,87 +564,95 @@ export default function Services() {
       {/* Registration Workflow Modal */}
       <AnimatePresence>
         {isWorkflowOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsWorkflowOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+              className="fixed inset-0 bg-black/60 backdrop-blur-md"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-6xl bg-white rounded-[4rem] p-12 md:p-20 shadow-2xl overflow-hidden"
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative w-full max-w-4xl bg-[#FAF9F5] rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 shadow-2xl overflow-y-auto max-h-[90vh] z-10 border border-gray-100 no-scrollbar"
             >
               <button 
                 onClick={() => setIsWorkflowOpen(false)}
-                className="absolute top-10 right-10 w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white border border-gray-200/50 flex items-center justify-center hover:bg-gray-50 hover:text-accent-pink shadow-sm transition-all text-gray-400"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="mb-16">
-                <span className="text-[10px] font-sans font-bold text-accent-pink uppercase tracking-[0.5em] mb-4 block">
-                  Registration Workflow
+              <div className="mb-12 text-left">
+                <span className="text-[10px] font-sans font-bold text-accent-pink uppercase tracking-[0.5em] mb-3 block">
+                  REGISTRATION WORKFLOW
                 </span>
-                <h2 className="text-4xl md:text-5xl font-serif tracking-tight leading-[1.1] md:leading-tight break-keep">
-                  계약 및 시스템 등록 <span className="text-gray-300 italic">상세 과정</span>
+                <h2 className="text-3xl md:text-4xl font-serif tracking-tight leading-snug break-keep text-gray-900">
+                  계약 및 시스템 등록 <span className="text-accent-pink italic">상세 과정</span>
                 </h2>
-              </div>
-
-              <div className="relative">
-                {/* Desktop Workflow (Horizontal) */}
-                <div className="hidden lg:flex items-center justify-between gap-2 relative">
-                  {REGISTRATION_WORKFLOW.map((item, idx) => (
-                    <div key={idx} className="flex-1 flex flex-col items-center text-center group">
-                      <div className="w-36 h-36 rounded-full bg-white border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-6 group-hover:border-accent-pink group-hover:scale-110 group-hover:bg-gray-50 group-hover:border-solid group-hover:shadow-xl group-hover:shadow-accent-pink/10 transition-all duration-500 relative">
-                        <span className="absolute top-6 text-[10px] font-sans font-bold text-gray-400 group-hover:text-accent-pink transition-colors">
-                          STEP 0{idx + 1}
-                        </span>
-                        <h4 className="text-[13px] font-serif mb-1 px-1 break-keep leading-tight text-gray-900 font-bold group-hover:text-accent-pink transition-colors">{item.title}</h4>
-                        {item.sub && <p className="text-[10px] text-gray-500 font-sans leading-tight px-1 font-medium">{item.sub}</p>}
-                        
-                        {idx < REGISTRATION_WORKFLOW.length - 1 && (
-                          <div className="absolute -right-5 top-1/2 -translate-y-1/2 text-accent-pink z-10 bg-white p-1">
-                            <ArrowRight className="w-4 h-4" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Mobile Workflow (Vertical) */}
-                <div className="lg:hidden flex flex-col items-center gap-8">
-                  {REGISTRATION_WORKFLOW.map((item, idx) => (
-                    <div key={idx} className="flex flex-col items-center text-center group">
-                      <div className="w-48 h-48 rounded-full bg-white border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-8 relative group-hover:border-accent-pink group-hover:scale-105 group-hover:bg-gray-50 group-hover:border-solid group-hover:shadow-xl group-hover:shadow-accent-pink/10 transition-all duration-500">
-                        <span className="absolute top-8 text-[11px] font-sans font-bold text-accent-pink">
-                          STEP 0{idx + 1}
-                        </span>
-                        <h4 className="text-base font-serif mb-2 px-2 break-keep leading-tight font-bold text-gray-900 group-hover:text-accent-pink transition-colors">{item.title}</h4>
-                        {item.sub && <p className="text-[11px] text-gray-500 font-sans leading-tight px-4 font-medium">{item.sub}</p>}
-                        
-                        {idx < REGISTRATION_WORKFLOW.length - 1 && (
-                          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-accent-pink rotate-90">
-                            <ArrowRight className="w-5 h-5" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-20 pt-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
-                <p className="text-xs text-accent-pink font-sans font-bold uppercase tracking-widest">
-                  * 일본결혼연합회 전체회원수 약 23만명 (24년 기준)
+                <p className="text-xs text-gray-500 font-sans mt-2 leading-relaxed max-w-lg">
+                  첫올의 안전하고 검증된 가입 심사망 등록 및 성혼 활동 기점까지의 정밀 프로토콜입니다.
                 </p>
+              </div>
+
+              {/* Vertical Timeline implementation */}
+              <div className="relative pl-6 sm:pl-10 border-l-2 border-dashed border-[#E07A5F]/20 space-y-10 py-2">
+                {REGISTRATION_WORKFLOW.map((item, idx) => (
+                  <motion.div 
+                    key={idx}
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="relative group"
+                  >
+                    {/* Timeline vertical node */}
+                    <div className="absolute -left-[31px] sm:-left-[47px] top-2 w-4 h-4 rounded-full bg-[#FAF9F5] border-2 border-[#E07A5F] flex items-center justify-center group-hover:scale-125 group-hover:bg-[#E07A5F] transition-all duration-300">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#E07A5F] group-hover:bg-white transition-colors" />
+                    </div>
+
+                    <div className="bg-white border border-[#F2EDE4]/80 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-[0_4px_22px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_32px_-6px_rgba(224,122,95,0.08)] hover:border-accent-pink/30 hover:-translate-y-0.5 transition-all duration-300">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                        <span className="text-[10px] sm:text-xs font-sans font-black text-[#E07A5F] tracking-widest uppercase bg-rose-50/50 px-3 py-1 rounded-full border border-rose-100/30 w-fit">
+                          STEP 0{idx + 1}
+                        </span>
+                        {item.badge && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-sans font-bold text-accent-pink bg-accent-pink/5 border border-accent-pink/15 rounded-full px-2.5 py-0.5 w-fit">
+                            <Sparkles className="w-3 h-3 text-accent-pink" /> {item.badge}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-base md:text-lg font-serif font-black text-gray-900 tracking-tight leading-snug">
+                        {item.title}
+                      </h3>
+
+                      {item.sub && (
+                        <div className="mt-2 inline-block text-xs font-sans font-bold text-[#E07A5F] bg-rose-50/70 px-3 py-1 rounded-lg border border-rose-100/40">
+                          {item.sub}
+                        </div>
+                      )}
+
+                      <p className="mt-3.5 text-xs md:text-sm text-gray-600 font-sans leading-relaxed break-keep">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Verified Badge and Controls */}
+              <div className="mt-16 pt-10 border-t border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-6">
+                <div className="flex items-center gap-3 bg-[#FAF4ED] border border-[#F2EDE4] rounded-2xl sm:rounded-full px-5 py-3 w-full sm:w-auto text-left">
+                  <ShieldCheck className="w-5 h-5 text-accent-pink flex-shrink-0" />
+                  <p className="text-[10px] sm:text-xs text-gray-800 font-sans font-bold tracking-wide">
+                    일본결혼연합회 정식 가입사 전체회원수 약 <span className="text-accent-pink text-sm sm:text-base font-extrabold">23만명</span> (24년 기준)
+                  </p>
+                </div>
                 <button 
                   onClick={() => setIsWorkflowOpen(false)}
-                  className="bg-black text-white px-10 py-4 rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:scale-105 transition-transform"
+                  className="w-full sm:w-auto bg-black text-white hover:bg-accent-pink hover:text-gray-900 transition-colors px-10 py-4.5 rounded-full text-xs font-sans font-bold uppercase tracking-widest hover:scale-102 hover:-translate-y-0.5 transition-all duration-300 shadow-md shadow-black/10 active:scale-98"
                 >
                   Close Window
                 </button>
