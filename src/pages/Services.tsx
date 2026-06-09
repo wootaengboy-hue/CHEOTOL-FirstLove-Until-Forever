@@ -564,7 +564,7 @@ export default function Services() {
       {/* Registration Workflow Modal */}
       <AnimatePresence>
         {isWorkflowOpen && (
-          <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center p-0 md:p-6 overflow-y-auto">
+          <div className="fixed inset-0 z-[100000] flex items-start md:items-center justify-center p-0 md:p-6 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -577,7 +577,7 @@ export default function Services() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
               transition={{ type: "spring", damping: 30, stiffness: 350 }}
-              className="relative w-full min-h-screen md:min-h-0 md:max-h-[90vh] md:max-w-4xl bg-[#FAF9F5] rounded-none md:rounded-[3.5rem] p-6 sm:p-10 md:p-16 shadow-2xl overflow-y-auto z-10 border-0 md:border border-gray-100 no-scrollbar pb-10 md:pb-16"
+              className="relative w-full min-h-screen md:min-h-0 md:max-h-[90vh] md:max-w-4xl bg-[#FAF9F5] rounded-none md:rounded-[3.5rem] p-6 pt-14 sm:p-10 md:p-16 shadow-2xl overflow-y-auto z-10 border-0 md:border border-gray-100 no-scrollbar pb-10 md:pb-16"
             >
               <button 
                 onClick={() => setIsWorkflowOpen(false)}
@@ -586,11 +586,11 @@ export default function Services() {
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="mb-10 text-left pt-6 md:pt-0">
+              <div className="mb-10 text-left pt-4 md:pt-0">
                 <span className="text-[10px] font-sans font-bold text-accent-pink uppercase tracking-[0.5em] mb-2.5 block">
                   REGISTRATION WORKFLOW
                 </span>
-                <h2 className="text-2xl md:text-4xl font-serif tracking-tight leading-snug break-keep text-gray-900">
+                <h2 className="text-lg xs:text-xl sm:text-2xl md:text-4xl font-serif tracking-tight leading-snug break-keep text-gray-900">
                   계약 및 시스템 등록 <span className="text-accent-pink italic">상세 과정</span>
                 </h2>
                 <p className="text-xs text-gray-500 font-sans mt-2 leading-relaxed max-w-lg">
