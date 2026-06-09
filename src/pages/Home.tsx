@@ -42,11 +42,11 @@ const STEPS = [
     step: "Step 3", 
     title: "온라인 화상 미팅", 
     subtitle: "물리적 거리를 넘어\n마음이 먼저 닿는 시간",
-    desc: "글로벌 네트워크 센터를 통해 일본, 베트남, 우즈벡 등 다양한 국가의 인연과 안전한 만남을 주선합니다.",
+    desc: "첫올의 첨단 매칭 시스템을 통한 일본 정예 매칭을 주선하며, 베트남·우즈베키스탄은 전문 자매 브랜드 '새마음국제결혼'을 통해 특화 연계됩니다.",
     longDesc: "직접 만나기 전, 온라인을 통해 서로의 목소리와 눈빛을 마주합니다. 언어의 장벽은 전문 통역 지원을 통해 자연스럽게 해소되며, 오직 서로에게 집중할 수 있는 환경을 제공합니다. 이 시간은 서로에 대한 호기심을 확신으로 바꾸는 소중한 과정입니다.",
     details: [
       { label: "Address", value: "글로벌 네트워크 센터" },
-      { label: "지원 국가", value: "일본, 베트남, 우즈벡 외 다수" },
+      { label: "지원 국가", value: "일본 (베트남·우즈벡은 '새마음국제결혼' 연계)" },
       { label: "검증 절차", value: "100% 신원 보증 및 심층 인터뷰" }
     ],
     icon: <Video className="w-6 h-6" />,
@@ -662,64 +662,123 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-6 md:px-[5%] bg-[#f4f0e6]">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-12">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="w-full md:w-2/5 bg-accent-pink p-12 rounded-3xl flex flex-col justify-center items-center text-center shadow-sm"
-          >
-            <p className="text-sm uppercase tracking-widest mb-2 font-sans font-medium">FAQ</p>
-            <h2 className="text-3xl md:text-4xl font-serif">Good to know</h2>
-          </motion.div>
+      <section className="py-24 px-6 md:px-[5%] bg-[#F9F6F0] relative overflow-hidden">
+        {/* Ambient background glows for silk shimmer */}
+        <div className="absolute top-[20%] left-[-10%] w-[50%] h-[50%] bg-[#F3DFDC]/40 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[20%] right-[-10%] w-[50%] h-[50%] bg-[#EBC0B9]/20 rounded-full blur-[150px] pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto rounded-[3rem] md:rounded-[4rem] relative overflow-hidden shadow-xl border border-white/50 bg-gradient-to-tr from-[#FAF4F2] via-[#F4DFDC] to-[#EBD2CF] p-8 sm:p-12 md:p-16 lg:p-20">
           
-          <div className="w-full md:w-3/5 flex flex-col justify-center divide-y divide-gray-300">
-            {[
-              { 
-                q: "주로 어느 국가의 분들과 매칭이 진행되나요?\n특정 국가를 지정할 수 있나요?", 
-                a: `"CHEOTOL은 특정 국가에 국한하여 매칭을 진행하지 않습니다. 일본의 정갈함, 베트남의 순박함, 우즈베키스탄의 따뜻함 등 국경을 넘어 당신을 '배경'이 아닌 '주인공'으로 바라봐 줄 순수한 정서가 남아있는 곳이라면 어디든 연결해 드립니다.\n\n물론 고객님이 선호하시는 문화권이나 국가가 있다면 그 의견을 최우선으로 존중합니다. 하지만 저희의 진짜 목표는 국적이라는 라벨을 지우고, 당신과 가장 깊이 정서적으로 교감할 수 있는 '단 한 사람'을 찾아드리는 것입니다."` 
-              },
-              { 
-                q: "언어가 달라서 말이 통하지 않을까 봐 걱정입니다.\n교감이 가능할까요?", 
-                a: `"사랑을 시작하는 데 있어 언어는 도구일 뿐, 본질이 아닙니다. 대표님 역시 처음 외국인과의 미팅에서 언어의 장벽보다 **'나에게 온전히 귀 기울여주는 맑은 눈빛'**에서 잊고 있던 첫사랑의 설렘을 느끼셨습니다.\n\n미팅 시에는 미묘한 감정선까지 전달할 수 있는 전문 통역이 동행하여 소통을 돕습니다. 또한, 성혼 이후에는 두 사람이 온전한 일상을 나눌 수 있도록 현지 및 국내에서의 언어 교육과 정착 케어 프로그램을 철저하게 지원하고 있으니 안심하셔도 좋습니다."` 
-              },
-              { 
-                q: "제가 원하는 '조건(나이, 외모 등)'에 딱 맞는 사람을 무조건 찾아줄 수 있나요?", 
-                a: `"고객님이 원하시는 이상형의 기준은 매칭의 중요한 나침반이 됩니다. 원하시는 조건들을 세심하게 반영하여 미팅을 준비합니다.\n\n다만, CHEOTOL은 스펙과 조건만으로 이력서를 채점하듯 사람을 평가하는 한국의 차가운 결혼 현실을 지양합니다. 저희가 드리고 싶은 가장 큰 가치는 **'조건을 묻기 전에 당신이라는 사람 자체를 먼저 궁금해하는 인연'**을 만나는 기쁨입니다. 완벽한 스펙의 나열보다, 만났을 때 20대의 심장처럼 다시 가슴이 뛰게 하는 그 '순수한 끌림'을 찾아드리는 데 집중하겠습니다."` 
-              },
-              { 
-                q: "상대방의 신원이나 서류는 확실하게 검증이 되나요?", 
-                a: `"첫사랑처럼 순수하고 아름다운 만남이 되기 위해서는, 그 바탕에 **'절대적인 신뢰'**가 있어야 합니다.\n\nCHEOTOL은 고객님이 상대방에 대한 어떠한 불안감 없이 온전히 감정에만 몰입하실 수 있도록, 현지 네트워크를 통해 범죄 이력, 혼인 관계, 학력 및 건강 상태 등의 공증 서류를 3단계에 걸쳐 엄격하게 교차 검증합니다. 마음은 가장 감성적으로 열어두시되, 검증은 저희가 가장 이성적이고 철저하게 진행합니다."` 
-              },
-              { 
-                q: "비용이나 추가금이 불투명해서 나중에 청구될까 봐 걱정입니다.", 
-                a: `"당신의 새로운 인생을 찾는 숭고한 여정이 금전적인 불안감으로 훼손되어서는 안 된다고 믿습니다.\n\nCHEOTOL은 투명성을 브랜드의 핵심 원칙으로 삼고 있습니다. 상담 단계에서부터 성혼, 그리고 입국 후 케어까지 발생하는 모든 비용과 프로세스를 명확하게 안내해 드리며, 계약 외의 부당한 추가금이나 숨겨진 비용은 일절 요구하지 않습니다. 오직 '나를 찾는 설렘'에만 집중하실 수 있도록 정직하게 동행하겠습니다."` 
-              }
-            ].map((faq, idx) => (
-              <details key={idx} className="group py-6 cursor-pointer">
-                <summary className="flex justify-between items-center list-none font-serif text-xl md:text-2xl font-bold text-gray-900 outline-none break-keep leading-snug whitespace-pre-line">
-                  {faq.q}
-                  <ChevronDown className="w-6 h-6 transition-transform group-open:rotate-180 text-accent-pink" />
-                </summary>
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 text-gray-800 text-lg font-sans font-medium leading-relaxed break-keep whitespace-pre-line"
+          {/* Elegant Crane SVG Left Background (Silver/Silken watermarked) */}
+          <svg viewBox="0 0 200 200" className="absolute top-12 left-6 w-36 h-36 sm:w-48 sm:h-48 text-[#DFB5B0] stroke-current stroke-[0.4] fill-none opacity-[0.22] pointer-events-none select-none">
+            <path d="M 20 120 C 40 100, 60 90, 80 85 C 90 82, 100 80, 110 75 C 120 70, 130 60, 140 45 C 145 38, 150 25, 152 15 C 153 10, 152 5, 155 5 C 158 5, 156 12, 158 20 C 160 30, 168 40, 175 45 C 182 50, 190 52, 195 55" />
+            <path d="M 80 85 C 75 70, 70 50, 72 30 C 73 15, 80 5, 82 5 C 84 5, 82 15, 85 30 C 88 50, 95 70, 92 80" />
+            <path d="M 80 85 C 85 95, 90 105, 92 115 C 95 130, 92 150, 90 165 C 89 175, 85 185, 82 190 C 81 192, 80 195, 82 195 C 85 195, 86 190, 88 180 C 92 165, 100 145, 98 125 C 97 115, 92 100, 90 92" />
+            <path d="M 82 190 C 84 192, 85 195, 87 195 C 90 195, 88 190, 90 180 C 92 170, 94 160, 93 150" />
+            <circle cx="155" cy="18" r="1.5" className="fill-[#A85850]" />
+          </svg>
+
+          {/* Elegant Crane SVG Right Background - Gliding Downwards */}
+          <svg viewBox="0 0 200 200" className="absolute bottom-16 right-10 w-44 h-44 text-[#DFB5B0] stroke-current stroke-[0.4] fill-none opacity-[0.22] pointer-events-none select-none">
+            <path d="M 180 80 C 160 100, 140 110, 120 115 C 110 118, 100 120, 90 125 C 80 130, 70 140, 60 155 C 55 162, 50 175, 48 185 C 47 190, 48 195, 45 195 C 42 195, 44 188, 42 180 C 40 170, 32 160, 25 155 C 18 150, 10 148, 5 145" />
+            <path d="M 120 115 C 125 130, 130 150, 128 170 C 127 185, 120 195, 118 195 C 116 195, 118 185, 115 170 C 112 150, 105 130, 108 120" />
+            <path d="M 120 115 C 115 105, 110 95, 108 85 C 105 70, 108 50, 110 35 C 111 25, 115 15, 118 10 C 119 8, 120 5, 118 5 C 115 5, 114 10, 112 20 C 108 35, 100 55, 102 75 C 103 85, 108 100, 110 108" />
+            <circle cx="45" cy="182" r="1.5" className="fill-[#A85850]" />
+          </svg>
+
+          {/* Scattered Cherry Blossom SVGs */}
+          <svg viewBox="0 0 100 100" className="absolute top-24 right-20 w-16 h-16 text-[#EAC8C4] stroke-current stroke-[0.5] fill-none opacity-[0.3] pointer-events-none select-none">
+            <path d="M 50 50 C 45 32, 32 22, 50 5 C 68 22, 55 32, 50 50" />
+            <path d="M 50 50 C 68 45, 78 32, 95 50 C 78 68, 68 55, 50 50" />
+            <path d="M 50 50 C 55 68, 68 78, 50 95 C 32 78, 45 68, 50 50" />
+            <path d="M 50 50 C 32 55, 22 68, 5 50 C 22 32, 32 45, 50 50" />
+            <circle cx="50" cy="50" r="3.5" className="stroke-current" />
+            <path d="M 50 46 L 50 36 M 54 47 L 62 40 M 53 53 L 62 58 M 47 53 L 38 60 M 46 47 L 38 40" />
+          </svg>
+
+          <svg viewBox="0 0 100 100" className="absolute bottom-28 left-24 w-20 h-20 text-[#EAC8C4] stroke-current stroke-[0.5] fill-none opacity-[0.25] pointer-events-none select-none">
+            <path d="M 50 50 C 45 32, 32 22, 50 5 C 68 22, 55 32, 50 50" />
+            <path d="M 50 50 C 68 45, 78 32, 95 50 C 78 68, 68 55, 50 50" />
+            <path d="M 50 50 C 55 68, 68 78, 50 95 C 32 78, 45 68, 50 50" />
+            <path d="M 50 50 C 32 55, 22 68, 5 50 C 22 32, 32 45, 50 50" />
+            <circle cx="50" cy="50" r="3.5" className="stroke-current" />
+          </svg>
+
+          <div className="relative z-10 flex flex-col lg:flex-row gap-12 lg:gap-16">
+            
+            {/* Title / Branding Column */}
+            <div className="w-full lg:w-5/12 flex flex-col justify-start pt-2">
+              <span className="text-[11px] font-sans font-bold text-[#A6625B] uppercase tracking-[0.4em] mb-4 block">
+                FAQ
+              </span>
+              <h2 className="text-4xl md:text-5xl font-serif text-[#4A2522] tracking-tight leading-tight font-medium">
+                Good to know
+              </h2>
+              
+              {/* Elegant Accent horizontal line representing silk braid */}
+              <div className="w-16 h-[2px] bg-gradient-to-r from-[#A6625B]/60 to-transparent my-8 sm:my-10" />
+              
+              <p className="text-[#6B4B48] font-sans text-base leading-relaxed break-keep font-light max-w-md">
+                첫올이 제안하는 만남과 새로운 결실에 대한 진정성 가득한 문답입니다. 국경을 넘어서는 숭고한 여정이 신뢰와 깊은 감동 속에 시작되길 바랍니다.
+              </p>
+            </div>
+            
+            {/* Accordion Questions Column */}
+            <div className="w-full lg:w-7/12 flex flex-col justify-center space-y-4 md:space-y-6">
+              {[
+                { 
+                  q: "주로 어느 국가의 분들과 매칭이 진행되나요? 특정 국가를 지정할 수 있나요?", 
+                  a: `"CHEOTOL은 특정 국가에 국한하여 매칭을 진행하지 않습니다. 일본의 정갈함, 베트남의 순박함, 우즈베키스탄의 따뜻함 등 국경을 넘어 당신을 '배경'이 아닌 '주인공'으로 바라봐 줄 순수한 정서가 남아있는 곳이라면 어디든 연결해 드립니다.\n\n물론 고객님이 선호하시는 문화권이나 국가가 있다면 그 의견을 최우선으로 존중합니다. 하지만 저희의 진짜 목표는 국적이라는 라벨을 지우고, 당신과 가장 깊이 정서적으로 교감할 수 있는 '단 한 사람'을 찾아드리는 것입니다."` 
+                },
+                { 
+                  q: "언어가 달라서 말이 통하지 않을까 봐 걱정입니다. 교감이 가능할까요?", 
+                  a: `"사랑을 시작하는 데 있어 언어는 도구일 뿐, 본질이 아닙니다. 대표님 역시 처음 외국인과의 미팅에서 언어의 장벽보다 **'나에게 온전히 귀 기울여주는 맑은 눈빛'**에서 잊고 있던 첫사랑의 설렘을 느끼셨습니다.\n\n미팅 시에는 미묘한 감정선까지 전달할 수 있는 전문 통역이 동행하여 소통을 돕습니다. 또한, 성혼 이후에는 두 사람이 온전한 일상을 나눌 수 있도록 현지 및 국내에서의 언어 교육과 정착 케어 프로그램을 철저하게 지원하고 있으니 안심하셔도 좋습니다."` 
+                },
+                { 
+                  q: "제가 원하는 '조건(나이, 외모 등)'에 딱 맞는 사람을 무조건 찾아줄 수 있나요?", 
+                  a: `"고객님이 원하시는 이상형의 기준은 매칭의 중요한 나침반이 됩니다. 원하시는 조건들을 세심하게 반영하여 미팅을 준비합니다.\n\n다만, CHEOTOL은 스펙과 조건만으로 이력서를 채점하듯 사람을 평가하는 한국의 차가운 결혼 현실을 지양합니다. 저희가 드리고 싶은 가장 큰 가치는 **'조건을 묻기 전에 당신이라는 사람 자체를 먼저 궁금해하는 인연'**을 만나는 기쁨입니다. 완벽한 스펙의 나열보다, 만났을 때 20대의 심장처럼 다시 가슴이 뛰게 하는 그 '순수한 끌림'을 찾아드리는 데 집중하겠습니다."` 
+                },
+                { 
+                  q: "상대방의 신원이나 서류는 확실하게 검증이 되나요?", 
+                  a: `"첫사랑처럼 순수하고 아름다운 만남이 되기 위해서는, 그 바탕에 **'절대적인 신뢰'**가 있어야 합니다.\n\nCHEOTOL은 고객님이 상대방에 대한 어떠한 불안감 없이 온전히 감정에만 몰입하실 수 있도록, 현지 네트워크를 통해 범죄 이력, 혼인 관계, 학력 및 건강 상태 등의 공증 서류를 3단계에 걸쳐 엄격하게 교차 검증합니다. 마음은 가장 감성적으로 열어두시되, 검증은 저희가 가장 이성적이고 철저하게 진행합니다."` 
+                },
+                { 
+                  q: "비용이나 추가금이 불투명해서 나중에 청구될까 봐 걱정입니다.", 
+                  a: `"당신의 새로운 인생을 찾는 숭고한 여정이 금전적인 불안감으로 훼손되어서는 안 된다고 믿습니다.\n\nCHEOTOL은 투명성을 브랜드의 핵심 원칙으로 삼고 있습니다. 상담 단계에서부터 성혼, 그리고 입국 후 케어까지 발생하는 모든 비용과 프로세스를 명확하게 안내해 드리며, 계약 외의 부당한 추가금이나 숨겨진 비용은 일절 요구하지 않습니다. 오직 '나를 찾는 설렘'에만 집중하실 수 있도록 정직하게 동행하겠습니다."` 
+                }
+              ].map((faq, idx) => (
+                <details 
+                  key={idx} 
+                  className="group bg-white/40 backdrop-blur-sm border border-white/60 hover:border-white/90 rounded-[2rem] p-6 sm:p-8 transition-all duration-300 md:shadow-[0_2px_12px_rgba(166,98,91,0.03)] cursor-pointer overflow-hidden list-none [&_summary::-webkit-details-marker]:hidden"
                 >
-                  {faq.a.split(/(\*\*.*?\*\*)/g).map((part, i) => {
-                    if (part.startsWith('**') && part.endsWith('**')) {
-                      return (
-                        <span key={i} className="font-bold bg-gradient-to-r from-[#D81B60] to-[#FFA726] bg-clip-text text-transparent">
-                          {part.slice(2, -2)}
-                        </span>
-                      );
-                    }
-                    return part;
-                  })}
-                </motion.div>
-              </details>
-            ))}
+                  <summary className="flex justify-between items-center list-none font-serif text-lg sm:text-xl lg:text-2xl font-bold text-[#4A2522] outline-none break-keep leading-snug select-none pr-2">
+                    <span className="flex-1 pr-4 whitespace-pre-line group-hover:text-[#A6625B] transition-colors duration-300">
+                      {faq.q}
+                    </span>
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-white/60 border border-white flex items-center justify-center text-[#A6625B] group-hover:bg-[#A6625B] group-hover:text-white transition-all duration-300 shadow-sm">
+                      <ChevronDown className="w-4 h-4 transition-transform duration-350 group-open:rotate-180" />
+                    </span>
+                  </summary>
+                  <motion.div 
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 text-[#5C3E3A] text-base sm:text-lg font-sans font-normal leading-relaxed break-keep whitespace-pre-line bg-[#FAF4F2]/50 border border-white/40 rounded-[1.2rem] p-5 sm:p-6"
+                  >
+                    {faq.a.split(/(\*\*.*?\*\*)/g).map((part, i) => {
+                      if (part.startsWith('**') && part.endsWith('**')) {
+                        return (
+                          <span key={i} className="font-extrabold text-[#953D34] underline decoration-[#953D34]/20 underline-offset-4 decoration-2">
+                            {part.slice(2, -2)}
+                          </span>
+                        );
+                      }
+                      return part;
+                    })}
+                  </motion.div>
+                </details>
+              ))}
+            </div>
+
           </div>
         </div>
       </section>
